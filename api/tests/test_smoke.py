@@ -29,8 +29,7 @@ def test_openapi():
 def test_postgres_container_connectivity():
     # Verify DB connectivity on configured DATABASE_URL (host port 5434)
     db_url = settings.DATABASE_URL.replace("postgresql+psycopg://", "postgresql://")
-    with psycopg.connect(db_url) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT 1;")
-            result = cur.fetchone()
-            assert result == (1,)
+    with psycopg.connect(db_url) as conn, conn.cursor() as cur:
+        cur.execute("SELECT 1;")
+        result = cur.fetchone()
+        assert result == (1,)
