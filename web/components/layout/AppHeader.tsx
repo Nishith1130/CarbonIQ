@@ -124,11 +124,11 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
           {mounted && session ? (
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="font-semibold text-ink-900 text-sm">Shivang Patel</div>
+                <div className="font-semibold text-ink-900 text-sm">Rajesh Mehta</div>
                 <div className="text-xs text-ink-500">Owner · {session.org_name || "Surat Modern Dyeing Mills"}</div>
               </div>
               <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-semibold flex items-center justify-center text-sm">
-                SP
+                RM
               </div>
               <button onClick={handleLogout} className="btn-ghost">Logout</button>
             </div>
