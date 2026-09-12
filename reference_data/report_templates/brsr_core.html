@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BRSR Core Supplier Disclosure — {{ org.name }}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 15mm 20mm 15mm;
+    @bottom-center {
+      content: "BRSR Core Supplier Disclosure — Page " counter(page) " of " counter(pages);
+      font-family: "Helvetica", "Arial", sans-serif;
+      font-size: 8pt;
+      color: #6B7280;
+    }
+  }
+
+  body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 10pt;
+    line-height: 1.4;
+    color: #1F2937;
+    margin: 0;
+  }
+
+  h1 {
+    font-size: 18pt;
+    color: #1F3A5F;
+    margin: 0 0 4pt 0;
+    border-bottom: 2pt solid #1F3A5F;
+    padding-bottom: 4pt;
+  }
+  h2 {
+    font-size: 13pt;
+    color: #1F3A5F;
+    margin: 16pt 0 6pt 0;
+    border-bottom: 1pt solid #D1D5DB;
+    padding-bottom: 2pt;
+  }
+  h3 {
+    font-size: 11pt;
+    color: #2E5C8A;
+    margin: 10pt 0 4pt 0;
+  }
+  .subtitle {
+    color: #6B7280;
+    font-size: 10pt;
+    margin: 0 0 12pt 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4pt 0 8pt 0;
+    font-size: 9pt;
+  }
+  th {
+    background: #1F3A5F;
+    color: white;
+    padding: 5pt 6pt;
+    text-align: left;
+    font-weight: bold;
+  }
+  td {
+    padding: 5pt 6pt;
+    border-bottom: 0.5pt solid #E5E7EB;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #F9FAFB; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .label { color: #6B7280; font-weight: normal; }
+
+  .kpi-grid {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    margin: 6pt 0 12pt 0;
+  }
+  .kpi {
+    display: table-cell;
+    background: #F3F4F6;
+    padding: 8pt;
+    border-left: 3pt solid #2E5C8A;
+    width: 33.33%;
+  }
+  .kpi + .kpi { border-left-color: #2E5C8A; border-left-width: 3pt; }
+  .kpi .k-label { color: #6B7280; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5pt; }
+  .kpi .k-value { font-size: 16pt; font-weight: bold; color: #1F3A5F; margin-top: 3pt; }
+  .kpi .k-unit { font-size: 8pt; color: #6B7280; }
+
+  .callout {
+    background: #EEF2F7;
+    border-left: 3pt solid #2E5C8A;
+    padding: 6pt 8pt;
+    margin: 6pt 0;
+    font-style: italic;
+    font-size: 9pt;
+  }
+
+  .audit-row { font-size: 8pt; color: #4B5563; }
+  .audit-row td { padding: 3pt 5pt; }
+
+  .footer-note {
+    margin-top: 18pt;
+    padding-top: 6pt;
+    border-top: 0.5pt solid #D1D5DB;
+    font-size: 8pt;
+    color: #6B7280;
+  }
+
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>BRSR Core Supplier Disclosure</h1>
+<p class="subtitle">
+  Prepared under SEBI BRSR Core framework for value-chain reporting.
+  This disclosure covers Principle 6 (environment) KPIs aligned with GHG Protocol Corporate Standard.
+</p>
+
+<h2>1. Reporting Entity</h2>
+<table>
+  <tr><td class="label" style="width: 30%">Legal name</td><td>{{ org.name }}</td></tr>
+  <tr><td class="label">Sector</td><td>{{ org.sector_display_name }}</td></tr>
+  <tr><td class="label">Location</td><td>{{ org.location | default("Not specified") }}</td></tr>
+  <tr><td class="label">Annual turnover (INR Cr)</td><td>{{ org.turnover_cr | default("Not disclosed") }}</td></tr>
+  <tr><td class="label">Export markets</td><td>{{ org.export_markets | join(", ") if org.export_markets else "None disclosed" }}</td></tr>
+  <tr><td class="label">Reporting period</td><td>{{ run.period_start }} to {{ run.period_end }}</td></tr>
+  <tr><td class="label">Report generated</td><td>{{ generated_at }}</td></tr>
+  <tr><td class="label">Emission factor version</td><td><code>{{ run.ef_version }}</code></td></tr>
+</table>
+
+<h2>2. Greenhouse Gas Emissions Summary</h2>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="k-label">Scope 1 (Direct)</div>
+    <div class="k-value">{{ totals.scope1 | round(2) }}</div>
+    <div class="k-unit">tCO<sub>2</sub>e</div>
+  </div>
+  <div class="kpi">
+    <div class="k-label">Scope 2 (Purchased energy)</div>
+    <div class="k-value">{{ totals.scope2 | round(2) }}</div>
+    <div class="k-unit">tCO<sub>2</sub>e (location-based)</div>
+  </div>
+  <div class="kpi">
+    <div class="k-label">Scope 3 (Partial)</div>
+    <div class="k-value">{{ totals.scope3_partial | round(2) }}</div>
+    <div class="k-unit">tCO<sub>2</sub>e</div>
+  </div>
+</div>
+
+<p><strong>Total (Scope 1 + Scope 2 + partial Scope 3):
+  {{ (totals.scope1 + totals.scope2 + totals.scope3_partial) | round(2) }} tCO<sub>2</sub>e</strong>
+  for the reporting period.
+</p>
+
+<div class="callout">
+  Scope 3 coverage: categories 1 (purchased goods and services), 4 (upstream transportation) and 9 (downstream transportation).
+  Categories 2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15 are not included in this disclosure.
+</div>
+
+<h3>2.1 Emissions by unit-process</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Unit process</th>
+      <th>Scope</th>
+      <th class="num">tCO<sub>2</sub>e</th>
+      <th class="num">Share of total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in baseline_by_process %}
+    <tr>
+      <td>{{ row.unit_process_name }}</td>
+      <td>Scope {{ row.scope }}</td>
+      <td class="num">{{ row.tCO2e | round(2) }}</td>
+      <td class="num">{{ row.share_pct | round(1) }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>3. Top Emission Hotspots</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Unit process</th>
+      <th class="num">tCO<sub>2</sub>e / period</th>
+      <th class="num">Share</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for h in hotspots %}
+    <tr>
+      <td>#{{ h.rank }}</td>
+      <td>{{ h.unit_process_name }}</td>
+      <td class="num">{{ h.tCO2e | round(2) }}</td>
+      <td class="num">{{ h.share_pct | round(1) }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>4. Recommended Circular Interventions</h2>
+<p>
+  Ranked by cost per tonne of CO<sub>2</sub>e abated. Payback periods are typical ranges from public
+  benchmarks; actual results will vary with local conditions and vendor selection.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Intervention</th>
+      <th class="num">CapEx (INR L)</th>
+      <th class="num">Annual saving (tCO<sub>2</sub>e)</th>
+      <th class="num">Cost per tCO<sub>2</sub>e (INR)</th>
+      <th class="num">Payback (yr)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in recommendations %}
+    <tr>
+      <td>#{{ loop.index }}</td>
+      <td>
+        <strong>{{ r.name }}</strong><br>
+        <span class="label">{{ r.rationale | default(r.description) }}</span>
+      </td>
+      <td class="num">{{ r.cost_capex_lakh | round(1) }}</td>
+      <td class="num">{{ r.tCO2e_reduced_annual | round(2) }}</td>
+      <td class="num">{{ r.cost_per_tco2e | round(0) }}</td>
+      <td class="num">{{ r.payback_years | round(1) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>5. Energy Footprint</h2>
+<table>
+  <tr><td class="label">Total energy consumed (GJ)</td><td class="num">{{ energy.total_gj | round(1) }}</td></tr>
+  <tr><td class="label">Renewable share (%)</td><td class="num">{{ energy.renewable_share_pct | round(1) }}%</td></tr>
+  <tr><td class="label">Grid electricity (kWh)</td><td class="num">{{ energy.grid_kwh | round(0) }}</td></tr>
+  <tr><td class="label">Fossil fuels (GJ)</td><td class="num">{{ energy.fossil_gj | round(1) }}</td></tr>
+  <tr><td class="label">Biomass (GJ)</td><td class="num">{{ energy.biomass_gj | round(1) }}</td></tr>
+</table>
+
+<h2>6. Water and Waste</h2>
+<div class="callout">
+  Water and waste KPIs are not covered by this MVP disclosure. The buyer or auditor may request these
+  separately. Ongoing product roadmap includes water withdrawal, discharge and waste-to-landfill KPIs
+  under BRSR Core Principles 6.2 and 6.4.
+</div>
+
+<div class="page-break"></div>
+
+<h2>Appendix A. Audit Trail</h2>
+<p>
+  Every emission line above is computed as <em>activity × emission factor</em>. The table below
+  reproduces each computation with source and version so that a third-party assurer can reproduce
+  the result.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>Unit process</th>
+      <th>Activity</th>
+      <th class="num">Quantity</th>
+      <th>Unit</th>
+      <th>Emission factor</th>
+      <th class="num">Value</th>
+      <th class="num">tCO<sub>2</sub>e</th>
+      <th>Source</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in audit_trail %}
+    <tr class="audit-row">
+      <td>{{ row.unit_process }}</td>
+      <td>{{ row.activity_type }}</td>
+      <td class="num">{{ row.quantity }}</td>
+      <td>{{ row.unit }}</td>
+      <td>{{ row.ef_id }}</td>
+      <td class="num">{{ row.ef_value }} {{ row.ef_unit }}</td>
+      <td class="num">{{ row.tCO2e | round(3) }}</td>
+      <td>{{ row.ef_source }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Appendix B. Methodology</h2>
+<ul>
+  <li><strong>Framework:</strong> GHG Protocol Corporate Standard (WRI &amp; WBCSD).</li>
+  <li><strong>Scope 2 accounting:</strong> Location-based, using the CEA all-India grid emission factor
+    ({{ grid_factor | default("0.7117 tCO₂/MWh, FY24-25") }}).</li>
+  <li><strong>Global warming potentials:</strong> IPCC AR6 100-year values.</li>
+  <li><strong>Emission factor sources:</strong> CEA CO<sub>2</sub> Baseline Database v20.0, IPCC AR6,
+    India GHG Program, DEFRA GHG Reporting 2024, PPAC coal calorific values.</li>
+  <li><strong>Reference data version:</strong> <code>{{ run.ef_version }}</code>.</li>
+  <li><strong>Recommendation engine:</strong> Retrieval-augmented reasoning over a curated intervention
+    library sourced from BEE Technology Bank, TERI sector reports and CII manuals. Emission and cost
+    calculations are deterministic; no ML predictions are used in the primary numbers.</li>
+</ul>
+
+<div class="footer-note">
+  Prepared by [PRODUCT NAME] for {{ org.name }} on {{ generated_at }}.
+  This report is a first-pass disclosure for value-chain reporting under SEBI BRSR Core and is not
+  a substitute for third-party limited assurance. Ranges shown reflect published benchmark
+  uncertainty and should be validated against local unit conditions before commercial commitment.
+</div>
+
+</body>
+</html>

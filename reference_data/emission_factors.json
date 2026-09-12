@@ -1,0 +1,243 @@
+{
+  "version": "cea_v20.0_ipcc_ar6_defra_2024",
+  "region_default": "IN_all_india",
+  "vintage": "FY2024-25",
+  "notes": "Every factor cites its source, vintage and region. When implementing the ef_loader service, look up by 'id'. Ranges (min/max) are for uncertainty disclosure; use 'value' as the point estimate in the deterministic formula.",
+  "factors": {
+    "electricity_grid_in_all_india": {
+      "value": 0.7117,
+      "unit": "tCO2/MWh",
+      "scope": 2,
+      "source": "CEA CO2 Baseline Database for the Indian Power Sector, v20.0, Dec 2024",
+      "region": "IN_all_india",
+      "vintage": "FY2024-25",
+      "notes": "Weighted-average grid EF including renewable and captive generation, excluding inter-grid imports. Used as location-based Scope 2 factor per GHG Protocol."
+    },
+    "electricity_grid_in_north": {
+      "value": 0.68,
+      "unit": "tCO2/MWh",
+      "scope": 2,
+      "source": "CEA CO2 Baseline Database v20.0",
+      "region": "IN_north",
+      "vintage": "FY2024-25"
+    },
+    "electricity_grid_in_west": {
+      "value": 0.74,
+      "unit": "tCO2/MWh",
+      "scope": 2,
+      "source": "CEA CO2 Baseline Database v20.0",
+      "region": "IN_west",
+      "vintage": "FY2024-25"
+    },
+    "electricity_grid_in_south": {
+      "value": 0.66,
+      "unit": "tCO2/MWh",
+      "scope": 2,
+      "source": "CEA CO2 Baseline Database v20.0",
+      "region": "IN_south",
+      "vintage": "FY2024-25"
+    },
+    "electricity_grid_in_east": {
+      "value": 0.83,
+      "unit": "tCO2/MWh",
+      "scope": 2,
+      "source": "CEA CO2 Baseline Database v20.0",
+      "region": "IN_east",
+      "vintage": "FY2024-25"
+    },
+    "coal_indian_bituminous": {
+      "value": 2.42,
+      "unit": "tCO2/tonne_coal",
+      "ncv_gj_per_tonne": 15.5,
+      "scope": 1,
+      "source": "IPCC AR6 default (95700 kgCO2/TJ) applied to Indian coal NCV per PPAC 2023-24",
+      "region": "IN_all_india",
+      "vintage": "2024",
+      "notes": "Combustion CO2 only; add CH4 and N2O factors separately if higher accuracy required.",
+      "ch4_g_per_gj": 1.0,
+      "n2o_g_per_gj": 1.5
+    },
+    "coal_indian_lignite": {
+      "value": 1.35,
+      "unit": "tCO2/tonne_coal",
+      "ncv_gj_per_tonne": 9.0,
+      "scope": 1,
+      "source": "IPCC AR6 default × Indian lignite NCV",
+      "region": "IN_all_india",
+      "vintage": "2024"
+    },
+    "diesel_hsd": {
+      "value": 2.68,
+      "unit": "kgCO2/litre",
+      "density_kg_per_litre": 0.832,
+      "ncv_gj_per_tonne": 43.0,
+      "scope": 1,
+      "source": "DEFRA GHG Reporting 2024; IPCC AR6",
+      "region": "GLOBAL",
+      "vintage": "2024"
+    },
+    "lpg_commercial": {
+      "value": 2.98,
+      "unit": "kgCO2/kg",
+      "ncv_gj_per_tonne": 47.3,
+      "scope": 1,
+      "source": "IPCC AR6; DEFRA 2024",
+      "region": "GLOBAL",
+      "vintage": "2024"
+    },
+    "natural_gas_indian_grid": {
+      "value": 2.02,
+      "unit": "kgCO2/Nm3",
+      "ncv_mj_per_Nm3": 36.0,
+      "scope": 1,
+      "source": "IPCC AR6 default × Indian NG composition (GAIL public data)",
+      "region": "IN_all_india",
+      "vintage": "2024"
+    },
+    "hfo_furnace_oil": {
+      "value": 3.15,
+      "unit": "kgCO2/litre",
+      "density_kg_per_litre": 0.96,
+      "scope": 1,
+      "source": "IPCC AR6; DEFRA 2024",
+      "region": "GLOBAL",
+      "vintage": "2024"
+    },
+    "biomass_bagasse": {
+      "value": 0.0,
+      "unit": "kgCO2/kg",
+      "ncv_gj_per_tonne": 7.5,
+      "scope": 1,
+      "source": "IPCC AR6 Guidelines — biomass is CO2-neutral for direct CO2 accounting; report separately",
+      "region": "GLOBAL",
+      "vintage": "2024",
+      "notes": "Biomass CO2 combustion is considered neutral under GHG Protocol if sustainably sourced. CH4 and N2O emissions from combustion still apply.",
+      "ch4_g_per_gj": 30.0,
+      "n2o_g_per_gj": 4.0
+    },
+    "biomass_rice_husk": {
+      "value": 0.0,
+      "unit": "kgCO2/kg",
+      "ncv_gj_per_tonne": 12.5,
+      "scope": 1,
+      "source": "IPCC AR6 Guidelines; TERI biomass characterization studies",
+      "region": "IN",
+      "vintage": "2024",
+      "ch4_g_per_gj": 30.0,
+      "n2o_g_per_gj": 4.0
+    },
+    "road_freight_medium_truck": {
+      "value": 0.212,
+      "unit": "kgCO2/tonne-km",
+      "scope": 3,
+      "source": "DEFRA GHG Reporting 2024 — HGV rigid 7.5-17t, average laden",
+      "region": "GLOBAL",
+      "vintage": "2024",
+      "notes": "Scope 3 Category 4/9 (upstream/downstream transport)."
+    },
+    "road_freight_heavy_truck": {
+      "value": 0.118,
+      "unit": "kgCO2/tonne-km",
+      "scope": 3,
+      "source": "DEFRA GHG Reporting 2024 — HGV articulated >33t, average laden",
+      "region": "GLOBAL",
+      "vintage": "2024"
+    },
+    "rail_freight_in": {
+      "value": 0.021,
+      "unit": "kgCO2/tonne-km",
+      "scope": 3,
+      "source": "DEFRA 2024; Indian Railways electrification factor applied",
+      "region": "IN",
+      "vintage": "2024"
+    },
+    "sea_freight_container": {
+      "value": 0.016,
+      "unit": "kgCO2/tonne-km",
+      "scope": 3,
+      "source": "DEFRA GHG Reporting 2024 — container shipping, average",
+      "region": "GLOBAL",
+      "vintage": "2024"
+    },
+    "refrigerant_r22_gwp100": {
+      "value": 1810,
+      "unit": "kgCO2e/kg_leaked",
+      "scope": 1,
+      "source": "IPCC AR6 Working Group I, Table 7.SM.7",
+      "region": "GLOBAL",
+      "vintage": "2021"
+    },
+    "refrigerant_r134a_gwp100": {
+      "value": 1530,
+      "unit": "kgCO2e/kg_leaked",
+      "scope": 1,
+      "source": "IPCC AR6 Working Group I, Table 7.SM.7",
+      "region": "GLOBAL",
+      "vintage": "2021"
+    },
+    "refrigerant_r410a_gwp100": {
+      "value": 2088,
+      "unit": "kgCO2e/kg_leaked",
+      "scope": 1,
+      "source": "IPCC AR6 Working Group I",
+      "region": "GLOBAL",
+      "vintage": "2021"
+    },
+    "gwp_ch4_100yr": {
+      "value": 28,
+      "unit": "kgCO2e/kg_CH4",
+      "source": "IPCC AR6 Working Group I, Table 7.SM.7 — GWP100 for fossil methane (non-biogenic)",
+      "region": "GLOBAL",
+      "vintage": "2021"
+    },
+    "gwp_n2o_100yr": {
+      "value": 265,
+      "unit": "kgCO2e/kg_N2O",
+      "source": "IPCC AR6 Working Group I, Table 7.SM.7",
+      "region": "GLOBAL",
+      "vintage": "2021"
+    },
+    "water_treatment_electric_pump": {
+      "value": 0.4,
+      "unit": "kWh/kL",
+      "notes": "Typical ETP/STP pump + aeration blower energy per kL treated. Multiply by grid EF for tCO2e.",
+      "source": "CPCB Textile Effluent Treatment Manual; BEE ETP benchmarking",
+      "region": "IN",
+      "vintage": "2023"
+    },
+    "process_cement_clinker": {
+      "value": 0.52,
+      "unit": "tCO2/tonne_clinker",
+      "scope": 1,
+      "source": "IPCC AR6; India Cement Sustainability Initiative",
+      "region": "IN",
+      "vintage": "2024",
+      "notes": "Chemical process emissions from calcination, excluding fuel combustion."
+    },
+    "purchased_steel_scrap": {
+      "value": 0.6,
+      "unit": "tCO2/tonne_steel",
+      "scope": 3,
+      "source": "worldsteel LCI 2023 — scrap-based EAF route (India adapted)",
+      "region": "IN",
+      "vintage": "2023",
+      "notes": "Scope 3 Category 1 (purchased goods) for downstream steel users."
+    },
+    "purchased_aluminium_india_avg": {
+      "value": 16.5,
+      "unit": "tCO2/tonne_al",
+      "scope": 3,
+      "source": "International Aluminium Institute 2023; CEA grid intensity applied",
+      "region": "IN",
+      "vintage": "2023"
+    },
+    "purchased_cotton_yarn": {
+      "value": 3.4,
+      "unit": "tCO2/tonne_yarn",
+      "scope": 3,
+      "source": "Higg MSI 2023 (Sustainable Apparel Coalition); regional adaptation for Indian cotton",
+      "region": "IN",
+      "vintage": "2023"
+    }
+  }
+}
