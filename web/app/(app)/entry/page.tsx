@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiClient, ApiError } from "@/lib/api-client";
-import { getSession } from "@/lib/auth";
+import { apiClient, ApiError } from "../../../lib/api-client";
+import { getSession } from "../../../lib/auth";
 import {
   SectorSchemaResponse,
   ActivityInput,
   RunResponse,
   TokenResponse,
-} from "@/lib/types";
+} from "../../../lib/types";
 import {
   Zap,
   Flame,
@@ -50,11 +50,11 @@ function BillEntryContent() {
     setSectorId(querySector);
 
     apiClient<SectorSchemaResponse>(`/sectors/${querySector}/schema`)
-      .then((data) => {
+      .then((data: any) => {
         setSchema(data);
         if (data.activities_expected && data.activities_expected.length > 0) {
           setActivities(
-            data.activities_expected.map((item) => ({
+            data.activities_expected.map((item: any) => ({
               activity_type: item.activity_type,
               quantity: 0,
               unit: item.unit,
@@ -64,7 +64,7 @@ function BillEntryContent() {
         }
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to load sector schema:", err);
         setLoading(false);
       });

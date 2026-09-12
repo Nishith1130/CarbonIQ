@@ -3,11 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { apiClient, ApiError } from "@/lib/api-client";
-import { saveSession } from "@/lib/auth";
-import { TokenResponse } from "@/lib/types";
+import { apiClient, ApiError } from "../../../lib/api-client";
+import { saveSession } from "../../../lib/auth";
+import { TokenResponse } from "../../../lib/types";
 import { ArrowRight, AlertCircle, Sparkles, Building2, KeyRound, Mail, Map, Banknote } from "lucide-react";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppHeader } from "../../../components/layout/AppHeader";
 
 export default function RegisterPage() {
   const router = useRouter();

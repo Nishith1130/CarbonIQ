@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api-client";
-import { getSession } from "@/lib/auth";
-import { Sector, TokenResponse } from "@/lib/types";
+import { apiClient } from "../../../lib/api-client";
+import { getSession } from "../../../lib/auth";
+import { Sector, TokenResponse } from "../../../lib/types";
 import { ArrowRight, Factory, Flame, Layers, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function OnboardingPage() {
@@ -19,11 +19,11 @@ export default function OnboardingPage() {
     setSession(activeSession);
 
     apiClient<Sector[]>("/sectors")
-      .then((data) => {
+      .then((data: any) => {
         setSectors(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to load sectors:", err);
         setError("Could not load sector catalog from backend.");
         setLoading(false);

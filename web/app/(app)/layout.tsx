@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { AppHeader } from "@/components/layout/AppHeader";
-import { isAuthenticated } from "@/lib/auth";
+import { AppHeader } from "../../components/layout/AppHeader";
+import { isAuthenticated } from "../../lib/auth";
 
 export default function AppLayout({
   children,

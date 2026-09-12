@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api-client";
-import { RunResponse } from "@/lib/types";
-import { ScopeBreakdownPie } from "@/components/charts/ScopeBreakdownPie";
-import { HotspotBar } from "@/components/charts/HotspotBar";
+import { apiClient } from "../../../../lib/api-client";
+import { RunResponse } from "../../../../lib/types";
+import { ScopeBreakdownPie } from "../../../../components/charts/ScopeBreakdownPie";
+import { HotspotBar } from "../../../../components/charts/HotspotBar";
 import {
   TrendingUp,
   Zap,
@@ -33,11 +33,11 @@ export default function DashboardPage() {
     if (!runId) return;
 
     apiClient<RunResponse>(`/runs/${runId}`)
-      .then((data) => {
+      .then((data: any) => {
         setRun(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to load run:", err);
         setError("Could not retrieve calculation run details.");
         setLoading(false);

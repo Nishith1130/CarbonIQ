@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { Totals } from "@/lib/types";
+import { Totals } from "../../lib/types";
 
 interface ScopeBreakdownPieProps {
   totals: Totals;

@@ -13,7 +13,7 @@ import {
   ArrowUpRight,
   Quote,
 } from "lucide-react";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppHeader } from "../components/layout/AppHeader";
 
 /* ─── Inline visualisation components ─── */
 
@@ -53,7 +53,7 @@ function CarbonFootprintDashboard() {
     [16, 4, 3, 1, 1],
     [14, 3, 3, 1, 1],
   ];
-  const maxStack = Math.max(...monthlyStacks.map((s) => s.reduce((a, b) => a + b, 0)));
+  const maxStack = Math.max(...monthlyStacks.map((s) => s.reduce((a: any, b: any) => a + b, 0)));
 
   const tableRows = [
     { label: "Dyeing Bath", sub: true, children: [
@@ -128,7 +128,7 @@ function CarbonFootprintDashboard() {
             <div className="flex-1">
               <div className="flex items-end gap-1 h-24 border-b border-ash/40">
                 {monthlyStacks.map((stack, i) => {
-                  const stackTotal = stack.reduce((a, b) => a + b, 0);
+                  const stackTotal = stack.reduce((a: any, b: any) => a + b, 0);
                   const heightPct = (stackTotal / maxStack) * 100;
                   return (
                     <div key={months[i]} className="flex-1 flex flex-col justify-end items-center group h-full relative" title={`${months[i]}: ${stackTotal} tCO₂e`}>

@@ -3,11 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { apiClient, ApiError } from "@/lib/api-client";
-import { saveSession } from "@/lib/auth";
-import { TokenResponse } from "@/lib/types";
+import { apiClient, ApiError } from "../../../lib/api-client";
+import { saveSession } from "../../../lib/auth";
+import { TokenResponse } from "../../../lib/types";
 import { AlertCircle } from "lucide-react";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { AppHeader } from "../../../components/layout/AppHeader";
 
 export default function LoginPage() {
   const router = useRouter();

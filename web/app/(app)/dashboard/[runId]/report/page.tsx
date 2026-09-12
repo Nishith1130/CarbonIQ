@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { apiClient, API_BASE_URL } from "@/lib/api-client";
-import { getToken } from "@/lib/auth";
-import { ReportResponse, RunResponse } from "@/lib/types";
+import { apiClient, API_BASE_URL } from "../../../../../lib/api-client";
+import { getToken } from "../../../../../lib/auth";
+import { ReportResponse, RunResponse } from "../../../../../lib/types";
 import {
   FileText,
   Download,
@@ -44,7 +44,7 @@ export default function ReportPage() {
         setReport(reportData);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to generate or load report:", err);
         setError("Failed to generate regulatory report.");
         setLoading(false);

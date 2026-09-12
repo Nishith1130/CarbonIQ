@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { apiClient } from "@/lib/api-client";
-import { MACCResponse, MACCItem } from "@/lib/types";
-import { MACCChart } from "@/components/charts/MACCChart";
-import { InterventionCard } from "@/components/cards/InterventionCard";
+import { apiClient } from "../../../../../lib/api-client";
+import { MACCResponse, MACCItem } from "../../../../../lib/types";
+import { MACCChart } from "../../../../../components/charts/MACCChart";
+import { InterventionCard } from "../../../../../components/cards/InterventionCard";
 import {
   TrendingDown,
   IndianRupee,
@@ -31,11 +31,11 @@ export default function MACCPage() {
     apiClient<MACCResponse>(`/runs/${runId}/macc`, {
       method: "POST",
     })
-      .then((data) => {
+      .then((data: any) => {
         setMacc(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to generate MACC:", err);
         setError("Could not generate Marginal Abatement Cost Curve.");
         setLoading(false);
@@ -72,8 +72,8 @@ export default function MACCPage() {
   // Calculate aggregates
   const items = macc.items || [];
   const negativeCostItems = items.filter((i) => i.cost_per_tco2e < 0);
-  const totalSavingsAnnual = items.reduce((acc, i) => acc + (Number(i.annual_saving_inr) || 0), 0);
-  const totalAbatement = items.reduce((acc, i) => acc + (Number(i.tco2e_reduced_annual) || 0), 0);
+  const totalSavingsAnnual = items.reduce((acc: any, i: any) => acc + (Number(i.annual_saving_inr) || 0), 0);
+  const totalAbatement = items.reduce((acc: any, i: any) => acc + (Number(i.tco2e_reduced_annual) || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -182,7 +182,7 @@ export default function MACCPage() {
         </div>
 
         <div className="space-y-3">
-          {items.map((item, idx) => (
+          {items.map((item: any, idx: number) => (
             <InterventionCard key={item.intervention_id || idx} item={item} rank={idx + 1} />
           ))}
         </div>

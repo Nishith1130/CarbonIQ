@@ -11,7 +11,7 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
-import { MACCItem } from "@/lib/types";
+import { MACCItem } from "../../lib/types";
 
 interface MACCChartProps {
   items: MACCItem[];
@@ -27,7 +27,7 @@ export function MACCChart({ items }: MACCChartProps) {
   }
 
   // Format data for Recharts
-  const chartData = items.map((item, idx) => ({
+  const chartData = items.map((item: any, idx: number) => ({
     name: item.intervention_name.length > 22
       ? item.intervention_name.slice(0, 20) + "..."
       : item.intervention_name,

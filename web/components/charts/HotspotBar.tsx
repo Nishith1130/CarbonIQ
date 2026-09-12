@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Hotspot } from "@/lib/types";
+import { Hotspot } from "../../lib/types";
 import { Flame, Zap, AlertCircle } from "lucide-react";
 
 interface HotspotBarProps {

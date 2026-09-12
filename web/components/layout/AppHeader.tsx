@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { getSession, removeToken } from "@/lib/auth";
-import { TokenResponse } from "@/lib/types";
+import { getSession, removeToken } from "../../lib/auth";
+import { TokenResponse } from "../../lib/types";
 
 interface AppHeaderProps {
   currentRunId?: string;

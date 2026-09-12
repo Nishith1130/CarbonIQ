@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MACCItem } from "@/lib/types";
+import { MACCItem } from "../../lib/types";
 import { TrendingDown, IndianRupee, Clock, BookOpen, CheckCircle2 } from "lucide-react";
 
 interface InterventionCardProps {

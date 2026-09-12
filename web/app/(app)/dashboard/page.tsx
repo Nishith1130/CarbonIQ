@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { apiClient } from "@/lib/api-client";
-import { getSession } from "@/lib/auth";
-import { RunResponse, TokenResponse } from "@/lib/types";
+import { apiClient } from "../../../lib/api-client";
+import { getSession } from "../../../lib/auth";
+import { RunResponse, TokenResponse } from "../../../lib/types";
 import {
   Factory,
   Plus,
