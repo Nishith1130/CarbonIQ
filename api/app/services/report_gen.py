@@ -38,7 +38,7 @@ def _render_with_weasyprint(html_content: str) -> bytes | None:
         import weasyprint
 
         return weasyprint.HTML(string=html_content).write_pdf()
-    except Exception as exc:
+    except (ImportError, OSError, RuntimeError, NameError, AttributeError, ValueError) as exc:
         logger.info(
             f"WeasyPrint unavailable ({type(exc).__name__}: {exc}); using ReportLab fallback."
         )
