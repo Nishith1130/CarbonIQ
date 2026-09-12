@@ -2,11 +2,13 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from app.config import get_settings
+from sqlalchemy.orm import Session
 
-settings = get_settings()
+from app.llm.embedding import embed_query
+from app.models.intervention_embedding import InterventionEmbedding
 
 _LIBRARY_DATA: List[Dict[str, Any]] | None = None
+
 
 def load_library() -> List[Dict[str, Any]]:
     global _LIBRARY_DATA
@@ -21,23 +23,37 @@ def load_library() -> List[Dict[str, Any]]:
     return _LIBRARY_DATA
 
 
-def search_candidates(sector: str, process: str, limit: int = 10) -> List[Dict[str, Any]]:
+def search_candidates(db: Session, query: str, limit: int = 10) -> List[Dict[str, Any]]:
     """
-    Linear metadata filter as per Phase 7 MVP specification.
-    Filters interventions by applicable sector and process.
+    Semantic search using pgvector cosine distance.
+
+    Embeds the given query string and finds the closest intervention
+    vectors in the `intervention_embeddings` table, then hydrates the
+    result from the in-memory JSON library.
     """
     library = load_library()
-    
-    candidates = []
-    for item in library:
-        # Check if sector matches
-        if sector in item.get("applicable_sectors", []):
-            # Check if process matches
-            if process in item.get("applicable_processes", []):
-                candidates.append(item)
-    
-    # Return top N candidates based on metadata match
-    return candidates[:limit]
+
+    # Embed the search query
+    query_vector = embed_query(query)
+
+    # Nearest-neighbour search via pgvector
+    records = (
+        db.query(InterventionEmbedding)
+        .order_by(InterventionEmbedding.vector.cosine_distance(query_vector))
+        .limit(limit)
+        .all()
+    )
+
+    # Build an id → record map for O(1) hydration
+    id_set = {r.intervention_id for r in records}
+    order_map = {r.intervention_id: idx for idx, r in enumerate(records)}
+
+    candidates = [item for item in library if item.get("id") in id_set]
+    # Preserve vector-distance order
+    candidates.sort(key=lambda x: order_map.get(x["id"], 999))
+
+    return candidates
+
 
 def get_intervention_by_id(intervention_id: str) -> Dict[str, Any] | None:
     library = load_library()
