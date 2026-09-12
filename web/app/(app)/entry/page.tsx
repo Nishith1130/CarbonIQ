@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, Suspense } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  Suspense,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient, API_BASE_URL, ApiError } from "@/lib/api-client";
 import { getSession } from "@/lib/auth";
@@ -11,13 +18,9 @@ import {
   TokenResponse,
 } from "@/lib/types";
 import {
-  Zap,
-  Flame,
-  Fuel,
   Plus,
   Trash2,
   ArrowRight,
-  Sparkles,
   AlertCircle,
   ShieldCheck,
   Upload,
@@ -25,9 +28,56 @@ import {
   CheckCircle2,
   Loader2,
   ClipboardList,
+  Sparkles,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/*                Fallback catalogue when schema is not loaded                */
+/* -------------------------------------------------------------------------- */
+
+interface ActivityOption {
+  activity_type: string;
+  display_name: string;
+  unit: string;
+  suggested_unit_process?: string | null;
+}
+
+const FALLBACK_CATALOGUE: Record<string, ActivityOption[]> = {
+  textile_dyeing: [
+    { activity_type: "electricity_grid", display_name: "Grid Electricity", unit: "kWh" },
+    { activity_type: "coal_indian_bituminous", display_name: "Coal (Bituminous)", unit: "kg" },
+    { activity_type: "biomass_bagasse", display_name: "Biomass (Bagasse / Rice Husk)", unit: "kg" },
+    { activity_type: "diesel_hsd", display_name: "Diesel (HSD)", unit: "litre" },
+    { activity_type: "lpg_commercial", display_name: "LPG (Commercial)", unit: "kg" },
+    { activity_type: "natural_gas_indian_grid", display_name: "Natural Gas", unit: "Nm3" },
+    { activity_type: "purchased_cotton_yarn", display_name: "Purchased Cotton Yarn (Scope 3)", unit: "tonne" },
+    { activity_type: "road_freight_medium_truck", display_name: "Road Freight — Medium Truck (Scope 3)", unit: "tonne_km" },
+    { activity_type: "water_freshwater", display_name: "Freshwater Withdrawal", unit: "kL" },
+    { activity_type: "refrigerant_r134a", display_name: "Refrigerant R-134a Top-up", unit: "kg" },
+  ],
+  foundry: [
+    { activity_type: "electricity_grid", display_name: "Grid Electricity", unit: "kWh" },
+    { activity_type: "coal_indian_bituminous", display_name: "Coke / Coal", unit: "kg" },
+    { activity_type: "natural_gas_indian_grid", display_name: "Natural Gas", unit: "Nm3" },
+    { activity_type: "diesel_hsd", display_name: "Diesel (HSD)", unit: "litre" },
+    { activity_type: "purchased_steel_scrap", display_name: "Purchased Steel Scrap (Scope 3)", unit: "tonne" },
+    { activity_type: "road_freight_medium_truck", display_name: "Road Freight — Medium Truck (Scope 3)", unit: "tonne_km" },
+  ],
+  food_processing: [
+    { activity_type: "electricity_grid", display_name: "Grid Electricity", unit: "kWh" },
+    { activity_type: "lpg_commercial", display_name: "LPG (Commercial)", unit: "kg" },
+    { activity_type: "diesel_hsd", display_name: "Diesel (HSD)", unit: "litre" },
+    { activity_type: "biomass_bagasse", display_name: "Biomass (Briquettes)", unit: "kg" },
+    { activity_type: "natural_gas_indian_grid", display_name: "Natural Gas", unit: "Nm3" },
+    { activity_type: "refrigerant_r134a", display_name: "Refrigerant R-134a Top-up", unit: "kg" },
+    { activity_type: "road_freight_medium_truck", display_name: "Road Freight — Refrigerated (Scope 3)", unit: "tonne_km" },
+    { activity_type: "water_freshwater", display_name: "Freshwater Withdrawal", unit: "kL" },
+  ],
+};
+
+/* -------------------------------------------------------------------------- */
 
 interface ParsedBillResponse {
   activities: ActivityInput[];
@@ -35,11 +85,7 @@ interface ParsedBillResponse {
   warnings: string[];
 }
 
-// ─── Tab Toggle ───────────────────────────────────────────────────────────────
-
 type ActiveTab = "manual" | "pdf";
-
-// ─── Main Content ─────────────────────────────────────────────────────────────
 
 function BillEntryContent() {
   const router = useRouter();
@@ -48,17 +94,18 @@ function BillEntryContent() {
   const [sectorId, setSectorId] = useState<string>("textile_dyeing");
   const [schema, setSchema] = useState<SectorSchemaResponse | null>(null);
 
-  // Tab state
   const [activeTab, setActiveTab] = useState<ActiveTab>("manual");
 
-  // Manual entry state
+  // Manual entry — start with ONLY electricity. SME adds everything else.
   const [activities, setActivities] = useState<ActivityInput[]>([
     { activity_type: "electricity_grid", quantity: 0, unit: "kWh" },
-    { activity_type: "coal_indian_bituminous", quantity: 0, unit: "kg" },
-    { activity_type: "diesel_hsd", quantity: 0, unit: "litre" },
   ]);
   const [periodStart, setPeriodStart] = useState("2024-04-01");
   const [periodEnd, setPeriodEnd] = useState("2025-03-31");
+
+  // "Add another line" dropdown
+  const [addOpen, setAddOpen] = useState(false);
+  const addMenuRef = useRef<HTMLDivElement>(null);
 
   // PDF upload state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -67,7 +114,7 @@ function BillEntryContent() {
   const [parseWarnings, setParseWarnings] = useState<string[]>([]);
   const [parseSuccess, setParseSuccess] = useState(false);
 
-  // Common state
+  // Common
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,35 +129,44 @@ function BillEntryContent() {
     apiClient<SectorSchemaResponse>(`/sectors/${querySector}/schema`)
       .then((data) => {
         setSchema(data);
-        if (data.activities_expected && data.activities_expected.length > 0) {
-          setActivities(
-            data.activities_expected.map((item) => ({
-              activity_type: item.activity_type,
-              quantity: 0,
-              unit: item.unit,
-              unit_process: item.suggested_unit_process || null,
-            }))
-          );
-        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [searchParams]);
 
-  // ── Demo preset ─────────────────────────────────────────────────────────────
-  const handleLoadSuratDemo = () => {
-    setSectorId("textile_dyeing");
-    setPeriodStart("2024-04-01");
-    setPeriodEnd("2025-03-31");
-    setActivities([
-      { activity_type: "electricity_grid", quantity: 100000, unit: "kWh", unit_process: null },
-      { activity_type: "coal_indian_bituminous", quantity: 40000, unit: "kg", unit_process: null },
-      { activity_type: "diesel_hsd", quantity: 1000, unit: "litre", unit_process: null },
-    ]);
-    setActiveTab("manual");
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setAddOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  const catalogue: ActivityOption[] = useMemo(() => {
+    if (schema?.activities_expected && schema.activities_expected.length > 0) {
+      return schema.activities_expected.map((a: any) => ({
+        activity_type: a.activity_type,
+        display_name: a.display_name || a.activity_type.replace(/_/g, " "),
+        unit: a.unit,
+        suggested_unit_process: a.suggested_unit_process || null,
+      }));
+    }
+    return FALLBACK_CATALOGUE[sectorId] || FALLBACK_CATALOGUE.textile_dyeing;
+  }, [schema, sectorId]);
+
+  const availableToAdd = useMemo(() => {
+    const taken = new Set(activities.map((a) => a.activity_type));
+    return catalogue.filter((c) => !taken.has(c.activity_type));
+  }, [catalogue, activities]);
+
+  const getActivityLabel = (type: string) => {
+    const match = catalogue.find((a) => a.activity_type === type);
+    return match?.display_name || type.replace(/_/g, " ").toUpperCase();
   };
 
-  // ── Manual entry helpers ─────────────────────────────────────────────────────
+  // ── Manual entry helpers ────────────────────────────────────────────────
   const handleUpdateQuantity = (index: number, val: string) => {
     const q = parseFloat(val) || 0;
     const updated = [...activities];
@@ -118,15 +174,25 @@ function BillEntryContent() {
     setActivities(updated);
   };
 
-  const handleAddLineItem = () => {
-    setActivities([...activities, { activity_type: "electricity_grid", quantity: 0, unit: "kWh" }]);
+  const handleAddLineItem = (opt: ActivityOption) => {
+    setActivities((prev) => [
+      ...prev,
+      {
+        activity_type: opt.activity_type,
+        quantity: 0,
+        unit: opt.unit,
+        unit_process: opt.suggested_unit_process || null,
+      },
+    ]);
+    setAddOpen(false);
   };
 
   const handleRemoveLineItem = (index: number) => {
+    if (activities.length <= 1) return;
     setActivities(activities.filter((_, i) => i !== index));
   };
 
-  // ── PDF upload helpers ───────────────────────────────────────────────────────
+  // ── PDF upload helpers ──────────────────────────────────────────────────
   const addFiles = useCallback((newFiles: FileList | File[]) => {
     const arr = Array.from(newFiles).filter(
       (f) =>
@@ -173,7 +239,10 @@ function BillEntryContent() {
       const formData = new FormData();
       uploadedFiles.forEach((f) => formData.append("files", f));
 
-      const token = typeof window !== "undefined" ? localStorage.getItem("carboniq_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("carboniq_token")
+          : null;
       const res = await fetch(`${API_BASE_URL}/upload/bills`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -188,7 +257,6 @@ function BillEntryContent() {
       const data: ParsedBillResponse = await res.json();
 
       if (data.activities && data.activities.length > 0) {
-        // Auto-fill the manual entry table and switch to it
         setActivities(
           data.activities.map((a) => ({
             activity_type: a.activity_type,
@@ -200,7 +268,6 @@ function BillEntryContent() {
         );
         setParseSuccess(true);
         setParseWarnings(data.warnings || []);
-        // Switch to manual tab so user can review
         setTimeout(() => setActiveTab("manual"), 1200);
       } else {
         setError("No activity data could be extracted from the uploaded files.");
@@ -212,7 +279,7 @@ function BillEntryContent() {
     }
   };
 
-  // ── Submit ───────────────────────────────────────────────────────────────────
+  // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -238,25 +305,13 @@ function BillEntryContent() {
       });
       router.push(`/dashboard/${result.id}`);
     } catch (err: any) {
-      setError(err instanceof ApiError ? err.message : "Error processing emission calculation run.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Error processing emission calculation run."
+      );
       setSubmitting(false);
     }
-  };
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-  const getActivityIcon = (type: string) => {
-    if (type.includes("electric")) return <Zap className="w-4 h-4 text-blue-600" />;
-    if (type.includes("coal") || type.includes("biomass") || type.includes("gas"))
-      return <Flame className="w-4 h-4 text-orange-500" />;
-    return <Fuel className="w-4 h-4 text-gray-500" />;
-  };
-
-  const getActivityLabel = (type: string) => {
-    if (schema) {
-      const match = schema.activities_expected?.find((a) => a.activity_type === type);
-      if (match) return match.display_name;
-    }
-    return type.replace(/_/g, " ").toUpperCase();
   };
 
   if (loading) {
@@ -270,36 +325,22 @@ function BillEntryContent() {
     );
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  const sectorDisplay = (schema as any)?.display_name || sectorId.replace(/_/g, " ");
+
   return (
     <div className="max-w-5xl mx-auto space-y-4">
-      {/* Step and Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-widest mb-1.5">
-            <span>Step 2 of 3</span>
-            <span>•</span>
-            <span>Utility &amp; Fuel Bill Ledger</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-            Log Facility Energy &amp; Activity Bills
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Enter bills manually or upload PDFs — CarbonIQ extracts and disaggregates into process hotspots.
-          </p>
-        </div>
-
-        {/* 1-Click Golden Demo Preset Button */}
-        <div>
-          <button
-            type="button"
-            onClick={handleLoadSuratDemo}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-50 border border-blue-100 hover:bg-blue-100 text-sm font-semibold text-blue-700 transition-all shadow-sm"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Load Surat Textile Mill Demo</span>
-          </button>
-        </div>
+      {/* Header — no step indicator, sector is fixed at signup */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+          Log Facility Energy &amp; Activity Bills
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Sector:{" "}
+          <span className="font-medium text-gray-700 capitalize">{sectorDisplay}</span>
+          {" · "}
+          Enter your monthly or annual utility bills. CarbonIQ disaggregates them
+          into process-level hotspots automatically.
+        </p>
       </div>
 
       {error && (
@@ -309,7 +350,7 @@ function BillEntryContent() {
         </div>
       )}
 
-      {/* Tab Switcher */}
+      {/* Tab switcher — Manual Entry / PDF Upload */}
       <div className="flex gap-1 p-1 bg-gray-100 border border-gray-200 rounded-xl w-fit">
         <button
           id="tab-manual"
@@ -336,17 +377,23 @@ function BillEntryContent() {
         >
           <Upload className="w-3.5 h-3.5" />
           PDF Upload
-          <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">AI</span>
+          <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">
+            AI
+          </span>
         </button>
       </div>
 
-      {/* ── PDF UPLOAD PANEL ─────────────────────────────────────────────────── */}
+      {/* ── PDF UPLOAD PANEL ─────────────────────────────────────────────── */}
       {activeTab === "pdf" && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-5">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">AI-Powered Bill Extraction</h2>
+            <h2 className="text-sm font-semibold text-gray-900">
+              AI-Powered Bill Extraction
+            </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Upload one or more PDF utility bills. Gemini AI will read them and auto-fill the entry table below. You can review &amp; edit before submitting.
+              Upload one or more PDF utility bills. Gemini AI will read them and
+              auto-fill the entry table below. You can review &amp; edit before
+              submitting.
             </p>
           </div>
 
@@ -373,35 +420,52 @@ function BillEntryContent() {
               onChange={handleFileInput}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
-            <div className={`p-3 rounded-full border ${isDragging ? "border-blue-300 bg-blue-100" : "border-gray-200 bg-white"} transition`}>
-              <Upload className={`w-6 h-6 ${isDragging ? "text-blue-600" : "text-gray-400"}`} />
+            <div
+              className={`p-3 rounded-full border ${
+                isDragging
+                  ? "border-blue-300 bg-blue-100"
+                  : "border-gray-200 bg-white"
+              } transition`}
+            >
+              <Upload
+                className={`w-6 h-6 ${
+                  isDragging ? "text-blue-600" : "text-gray-400"
+                }`}
+              />
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-gray-900">
                 {isDragging ? "Drop files here" : "Drag & drop PDF bills here"}
               </p>
-              <p className="text-xs text-gray-400 mt-1">or click to browse — PDF, PNG, JPG supported</p>
+              <p className="text-xs text-gray-400 mt-1">
+                or click to browse — PDF, PNG, JPG supported
+              </p>
             </div>
           </div>
 
           {/* File List */}
           {uploadedFiles.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-700">Selected Files ({uploadedFiles.length})</p>
+              <p className="text-xs font-semibold text-gray-700">
+                Selected Files ({uploadedFiles.length})
+              </p>
               {uploadedFiles.map((file, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between gap-3 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs"
                 >
                   <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="text-xs font-medium text-gray-900 flex-1 truncate">{file.name}</span>
-                  <span className="text-[10px] font-mono text-gray-400">
+                  <span className="text-xs font-medium text-gray-900 flex-1 truncate">
+                    {file.name}
+                  </span>
+                  <span className="text-[10px] font-mono text-gray-400 tabular-nums">
                     {(file.size / 1024).toFixed(1)} KB
                   </span>
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
                     className="p-1 text-gray-400 hover:text-red-600 transition"
+                    aria-label="Remove file"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -415,15 +479,20 @@ function BillEntryContent() {
             <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700">
               <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
               <span>
-                Data extracted successfully! Switching to Manual Entry so you can review and edit before submitting.
+                Data extracted successfully! Switching to Manual Entry so you can
+                review and edit before submitting.
               </span>
             </div>
           )}
           {parseWarnings.length > 0 && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-[11px] font-semibold text-amber-700 mb-1">Warnings:</p>
+              <p className="text-[11px] font-semibold text-amber-700 mb-1">
+                Warnings:
+              </p>
               {parseWarnings.map((w, i) => (
-                <p key={i} className="text-[11px] text-amber-600">{w}</p>
+                <p key={i} className="text-[11px] text-amber-600">
+                  {w}
+                </p>
               ))}
             </div>
           )}
@@ -444,22 +513,29 @@ function BillEntryContent() {
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Extract Data from {uploadedFiles.length || 0} File{uploadedFiles.length !== 1 ? "s" : ""}</span>
+                <span>
+                  Extract Data from {uploadedFiles.length || 0} File
+                  {uploadedFiles.length !== 1 ? "s" : ""}
+                </span>
               </>
             )}
           </button>
         </div>
       )}
 
-      {/* ── MANUAL ENTRY FORM ─────────────────────────────────────────────────── */}
+      {/* ── MANUAL ENTRY FORM ────────────────────────────────────────────── */}
       {activeTab === "manual" && (
-        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6">
-          {/* If auto-filled from PDF, show a notice */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6"
+        >
+          {/* Auto-fill notice from PDF parse */}
           {parseSuccess && (
             <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>
-                The table below was auto-filled from your uploaded bills. Please review and correct any values before submitting.
+                The table below was auto-filled from your uploaded bills. Please
+                review and correct any values before submitting.
               </span>
             </div>
           )}
@@ -493,54 +569,49 @@ function BillEntryContent() {
           {/* Activity Rows */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-900">Energy &amp; Fuel Line Items</h3>
-              <span className="text-[11px] font-mono text-gray-400">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Energy &amp; Fuel Line Items
+              </h3>
+              <span className="text-[11px] font-mono text-gray-400 tabular-nums">
                 CEA v20.0 (India Grid Factor: 0.7117 tCO₂/MWh)
               </span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3">
               {activities.map((act, index) => (
                 <div
-                  key={index}
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 bg-gray-50 border border-gray-200 rounded-lg transition hover:border-gray-300"
+                  key={`${act.activity_type}-${index}`}
+                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-200 transition-all group"
                 >
-                  <div className="flex items-center gap-2.5 flex-1 min-w-[200px]">
-                    <div className="p-1.5 rounded bg-white border border-gray-200 flex items-center justify-center">
-                      {getActivityIcon(act.activity_type)}
-                    </div>
-                    <div>
-                      <span className="text-xs font-medium text-gray-900 block">
-                        {getActivityLabel(act.activity_type)}
-                      </span>
-                      <span className="text-[10px] font-mono text-gray-400 uppercase">
-                        {act.activity_type}
-                      </span>
-                    </div>
+                  <div className="flex flex-col overflow-hidden pr-3 min-w-0">
+                    <span className="text-[13px] font-semibold text-gray-900 capitalize truncate">
+                      {getActivityLabel(act.activity_type)}
+                    </span>
                   </div>
 
-                  {/* Quantity Input */}
-                  <div className="flex items-center gap-2 sm:w-64">
-                    <div className="relative flex-1">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
-                        value={act.quantity === 0 ? "" : act.quantity}
-                        onChange={(e) => handleUpdateQuantity(index, e.target.value)}
-                        placeholder="0"
-                        className="w-full px-3 py-1.5 text-sm font-mono border border-gray-200 rounded-lg bg-white text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </div>
-                    <span className="w-16 text-xs font-mono text-gray-500">{act.unit}</span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={act.quantity === 0 ? "" : act.quantity}
+                      onChange={(e) => handleUpdateQuantity(index, e.target.value)}
+                      placeholder="0"
+                      className="w-24 px-2.5 py-1.5 text-[13px] font-semibold border border-gray-200 rounded-md bg-gray-50 text-gray-900 text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:font-normal placeholder:text-gray-400"
+                    />
+                    <span className="w-14 text-[11px] font-semibold text-gray-500 uppercase text-left">
+                      {act.unit}
+                    </span>
+
                     {activities.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveLineItem(index)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 transition"
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                         title="Remove bill line"
+                        aria-label="Remove line item"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
@@ -548,21 +619,73 @@ function BillEntryContent() {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={handleAddLineItem}
-              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium pt-2 transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add another utility bill line</span>
-            </button>
+            {/* Add line item — dropdown of remaining catalogue */}
+            <div className="relative pt-1" ref={addMenuRef}>
+              <button
+                type="button"
+                onClick={() => setAddOpen((s) => !s)}
+                disabled={availableToAdd.length === 0}
+                className="flex items-center gap-1.5 text-[13px] text-blue-600 hover:text-blue-700 font-semibold disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>
+                  {availableToAdd.length === 0
+                    ? "All available line items added"
+                    : "Add another utility bill line"}
+                </span>
+                {availableToAdd.length > 0 && (
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform ${
+                      addOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
+              </button>
+
+              {addOpen && availableToAdd.length > 0 && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg p-1.5 z-30 animate-in fade-in-50 zoom-in-95 duration-100"
+                >
+                  <div className="px-3 py-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
+                    Add for sector:{" "}
+                    <span className="capitalize">{sectorDisplay}</span>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {availableToAdd.map((opt) => (
+                      <button
+                        key={opt.activity_type}
+                        type="button"
+                        onClick={() => handleAddLineItem(opt)}
+                        className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left hover:bg-gray-50 transition-colors group"
+                      >
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[13px] font-medium text-gray-900 capitalize truncate">
+                            {opt.display_name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-[10px] font-semibold text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded">
+                            {opt.unit}
+                          </span>
+                          <Check className="w-3.5 h-3.5 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Submit Actions */}
           <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span>Deterministic ISO 14064-1 &amp; GHG Protocol Scope 1, 2, 3 verification</span>
+              <span>
+                Deterministic ISO 14064-1 &amp; GHG Protocol Scope 1, 2, 3
+                verification
+              </span>
             </div>
 
             <button
