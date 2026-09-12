@@ -131,28 +131,28 @@ export default function RegisterPage() {
   return (
     <div className="h-screen h-[100dvh] flex flex-col overflow-hidden bg-paper">
       <AppHeader />
-      <main className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-2 overflow-hidden">
-        <div className="w-full max-w-[540px]">
-          <div className="text-center mb-3 sm:mb-4">
+      <main className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-3 overflow-hidden">
+        <div className="w-full max-w-[700px]">
+          <div className="text-center mb-4 sm:mb-5">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-midnight leading-tight">
               Create Workspace
             </h1>
-            <p className="text-xs sm:text-sm text-steel mt-0.5">
-              Configure multi-tenant isolation and BRSR compliance
+            <p className="text-xs sm:text-sm text-steel mt-1">
+              Configure multi-tenant isolation, sector emission mapping, and BRSR compliance
             </p>
           </div>
 
-          <div className="bg-canvas border border-ash/80 shadow-sm rounded-2xl p-5 sm:p-6">
+          <div className="bg-canvas border border-ash/80 shadow-md shadow-slate-200/40 rounded-2xl p-6 sm:p-8">
             {error && (
-              <div className="mb-3 p-2.5 rounded-lg bg-red-50/80 border border-red-100 flex items-start gap-2.5 text-xs text-red-800">
+              <div className="mb-3.5 p-3 rounded-lg bg-red-50/80 border border-red-100 flex items-start gap-2.5 text-xs text-red-800">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1.5">
                   Company / Mill Legal Entity Name
                 </label>
                 <input
@@ -161,13 +161,13 @@ export default function RegisterPage() {
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="e.g. Apex Dyeing & Printing Works LLP"
-                  className="w-full px-3.5 py-2 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
+                  className="w-full px-4 py-2.5 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1.5">
                     Plant Work Email
                   </label>
                   <input
@@ -176,12 +176,12 @@ export default function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@surattextile.in"
-                    className="w-full px-3.5 py-2 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
+                    className="w-full px-4 py-2.5 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1.5">
                     Password
                   </label>
                   <input
@@ -191,25 +191,25 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-3.5 py-2 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
+                    className="w-full px-4 py-2.5 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Custom Styled Sector Cluster Dropdown */}
                 <div className="relative" ref={dropdownRef}>
-                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1.5">
                     Industrial Sector Cluster
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsDropdownOpen((prev) => !prev)}
-                    className={`w-full px-3.5 py-2 text-sm border rounded-xl bg-canvas flex items-center justify-between text-left transition-colors focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight ${
+                    className={`w-full px-4 py-2.5 text-sm border rounded-xl bg-canvas flex items-center justify-between text-left transition-colors focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight ${
                       isDropdownOpen ? "border-midnight ring-1 ring-midnight" : "border-ash hover:border-charcoal/40"
                     }`}
                   >
-                    <span className="flex items-center gap-2 truncate">
+                    <span className="flex items-center gap-2.5 truncate">
                       {selectedSector ? (
                         <>
                           <selectedSector.icon className="w-4 h-4 text-midnight flex-shrink-0" />
@@ -220,7 +220,7 @@ export default function RegisterPage() {
                       ) : (
                         <>
                           <Layers className="w-4 h-4 text-silver flex-shrink-0" />
-                          <span className="text-silver">Choose an option</span>
+                          <span className="text-silver font-normal">Choose an option</span>
                         </>
                       )}
                     </span>
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1.5">
                     Turnover (₹ Crore)
                   </label>
                   <input
@@ -280,7 +280,7 @@ export default function RegisterPage() {
                     value={turnoverCrore}
                     onChange={(e) => setTurnoverCrore(e.target.value)}
                     placeholder="e.g. 12.5"
-                    className="w-full px-3.5 py-2 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
+                    className="w-full px-4 py-2.5 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                   />
                 </div>
               </div>
@@ -290,7 +290,7 @@ export default function RegisterPage() {
                 <label className="block text-xs font-semibold text-midnight uppercase tracking-wider mb-1.5">
                   Supply Chain / Export Compliance Scope
                 </label>
-                <div className="flex flex-row gap-5 text-xs sm:text-sm">
+                <div className="flex flex-row gap-6 text-xs sm:text-sm">
                   <label className="flex items-center gap-2.5 cursor-pointer text-midnight group select-none">
                     <div className="relative flex items-center justify-center">
                       <input
@@ -322,7 +322,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-midnight hover:bg-charcoal text-canvas text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed group shadow-sm"
+                className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 rounded-xl bg-midnight hover:bg-charcoal text-canvas text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed group shadow-sm"
               >
                 {loading ? (
                   <span>Registering facility...</span>
@@ -333,11 +333,11 @@ export default function RegisterPage() {
             </form>
 
             {/* Quick Demo Pre-fill Button */}
-            <div className="mt-3 pt-3 border-t border-ash/50">
+            <div className="mt-3.5 pt-3.5 border-t border-ash/50">
               <button
                 type="button"
                 onClick={handleDemoPreset}
-                className="w-full flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl bg-paper border border-ash hover:border-charcoal hover:bg-ash/20 text-xs text-charcoal font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-paper border border-ash hover:border-charcoal hover:bg-ash/20 text-xs text-charcoal font-medium transition-colors"
               >
                 Autofill demo profile
               </button>
