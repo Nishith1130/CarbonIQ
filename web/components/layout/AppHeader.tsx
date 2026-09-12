@@ -45,7 +45,7 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
         {/* Left Side: Logo & Main Links */}
         <div className="flex items-center gap-8">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-lg bg-[#0A0A0A] flex items-center justify-center text-white font-bold text-sm tracking-tight transition-transform group-hover:scale-105">
               C
             </div>
