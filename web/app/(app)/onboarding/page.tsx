@@ -31,7 +31,11 @@ export default function OnboardingPage() {
   }, []);
 
   const handleSelectSector = (sectorId: string) => {
-    router.push(`/entry?sector=${sectorId}`);
+    if (!session) {
+      router.push(`/login`);
+    } else {
+      router.push(`/entry?sector=${sectorId}`);
+    }
   };
 
   const getClusterInfo = (id: string) => {

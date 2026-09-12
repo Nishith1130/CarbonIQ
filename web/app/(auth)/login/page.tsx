@@ -27,7 +27,7 @@ export default function LoginPage() {
       });
 
       saveSession(resp);
-      router.push("/onboarding");
+      router.push("/dashboard");
     } catch (err: any) {
       if (err instanceof ApiError) {
         setError(err.message);

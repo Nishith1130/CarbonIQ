@@ -27,27 +27,42 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
     router.push("/login");
   };
 
-  const navLinks = [
-    {
-      href: "/onboarding",
-      label: "Sectors",
-      icon: Compass,
-      active: pathname === "/onboarding",
-    },
-    {
-      href: "/entry",
-      label: "Bill Entry",
-      icon: FileSpreadsheet,
-      active: pathname === "/entry",
-    },
-  ];
+  const navLinks = session
+    ? [
+        {
+          href: "/dashboard",
+          label: "Dashboard",
+          icon: BarChart3,
+          active: pathname === "/dashboard",
+        },
+        {
+          href: "/entry",
+          label: "New Bill Entry",
+          icon: FileSpreadsheet,
+          active: pathname === "/entry",
+        },
+        {
+          href: "/onboarding",
+          label: "Sectors",
+          icon: Compass,
+          active: pathname === "/onboarding",
+        },
+      ]
+    : [
+        {
+          href: "/onboarding",
+          label: "Sector Models",
+          icon: Compass,
+          active: pathname === "/onboarding",
+        },
+      ];
 
-  if (currentRunId) {
-    navLinks.unshift({
+  if (currentRunId && session) {
+    navLinks.splice(1, 0, {
       href: `/dashboard/${currentRunId}`,
-      label: "Overview",
+      label: "Active Run",
       icon: BarChart3,
-      active: pathname === `/dashboard/${currentRunId}`,
+      active: pathname.startsWith(`/dashboard/${currentRunId}`),
     });
   }
 

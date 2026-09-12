@@ -19,6 +19,12 @@ export default function AppLayout({
   const currentRunId = runIdMatch ? runIdMatch[1] : undefined;
 
   useEffect(() => {
+    // Allow public access to sector catalog / onboarding without login
+    if (pathname === "/onboarding") {
+      setChecked(true);
+      return;
+    }
+
     if (!isAuthenticated()) {
       router.replace("/login");
     } else {
