@@ -122,17 +122,15 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
         {/* Right Side: Auth / Profile */}
         <div className="flex items-center gap-4">
           {mounted && session ? (
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-semibold text-gray-900">{session.org_name}</span>
-                <span className="text-[11px] text-gray-500">{session.email}</span>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="font-semibold text-ink-900 text-sm">Shivang Patel</div>
+                <div className="text-xs text-ink-500">Owner · {session.org_name || "Surat Modern Dyeing Mills"}</div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg text-[15px] font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all border border-gray-200"
-              >
-                Logout
-              </button>
+              <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-semibold flex items-center justify-center text-sm">
+                SP
+              </div>
+              <button onClick={handleLogout} className="btn-ghost">Logout</button>
             </div>
           ) : (
             <div className="flex items-center gap-3">

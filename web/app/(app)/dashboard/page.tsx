@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { getSession } from "@/lib/auth";
 import { RunResponse, TokenResponse } from "@/lib/types";
@@ -76,6 +77,7 @@ const VERIFICATION_CONFIGS: Record<VerificationTier, VerificationConfig> = {
 };
 
 export default function FacilityHubPage() {
+  const router = useRouter();
   const [runs, setRuns] = useState<RunResponse[]>([]);
   const [session, setSession] = useState<TokenResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,37 +158,22 @@ export default function FacilityHubPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-10">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-3">
-            {session?.org_name || "Facility Overview"}
+          <h1 className="text-3xl font-bold tracking-tight text-ink-900">
+            {session?.org_name || "Surat Modern Dyeing Mills LLP"}
           </h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-            <span className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-medium">
-              <Factory className="w-4 h-4" />
-              {session?.sector_id ? session.sector_id.replace("_", " ").toUpperCase() : "TEXTILE PROCESSING"}
-            </span>
-            <span>Tenant ID: <span className="font-mono text-gray-600">{session?.org_id?.slice(0, 8) || "demo"}</span></span>
-            <span className="hidden sm:inline text-gray-300">•</span>
-            <span className="hidden sm:inline">Grid: CEA v20.0 (0.7117 tCO₂/MWh)</span>
-            <span className="hidden sm:inline text-gray-300">•</span>
-            {/* Live Data Freshness Badge */}
-            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-xs font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Data Freshness: Active • Updated {verificationDate}</span>
-            </span>
+          <div className="mt-2 flex items-center gap-3 text-sm text-ink-500">
+            <span className="chip chip-brand">🏭 Textile Dyeing</span>
+            <span>·</span>
+            <span>Reporting FY 2024-25</span>
+            <span>·</span>
+            <span>Updated 3 days ago</span>
           </div>
         </div>
-
-        {/* Primary SME Action: Log Monthly Data */}
-        <Link
-          href="/entry"
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[15px] font-semibold transition-all shadow-sm hover:shadow whitespace-nowrap"
-          title="Log monthly utility bills and fuel consumption"
-        >
-          <Plus className="w-5 h-5" />
-          <span>+ Log This Month&apos;s Data</span>
-        </Link>
+        <button onClick={() => router.push("/entry")} className="btn-primary">
+          + Log This Month&apos;s Data
+        </button>
       </div>
 
       {!latestRun ? (
