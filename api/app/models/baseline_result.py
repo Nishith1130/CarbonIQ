@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import ForeignKey, Numeric, String, Uuid
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -26,6 +26,8 @@ class BaselineResult(Base):
         Uuid, ForeignKey("activity_data.id", ondelete="SET NULL"), nullable=True, index=True
     )
     emission_factor_ref: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    data_source: Mapped[str] = mapped_column(String(50), default="measured", server_default="measured", nullable=False)
 
     run: Mapped["Run"] = relationship("Run", back_populates="baseline_results")
     activity_data: Mapped[Optional["ActivityData"]] = relationship(

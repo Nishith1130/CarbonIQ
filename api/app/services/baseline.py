@@ -46,6 +46,8 @@ class BaselineEngine:
                 "scope3_partial": Decimal("0.0"),
                 "tCO2e": Decimal("0.0"),
                 "share_pct": Decimal("0.0"),
+                "is_estimated": False,
+                "data_source": "measured",
             }
         )
 
@@ -95,6 +97,8 @@ class BaselineEngine:
                     "unit": unit,
                     "month": month,
                     "attribution": "direct",
+                    "is_estimated": False,
+                    "data_source": "measured",
                 })
                 pe = process_emissions[specified_proc]
                 if scope_str == "1":
@@ -139,6 +143,8 @@ class BaselineEngine:
                             "unit": unit,
                             "month": month,
                             "attribution": f"benchmark_split ({round(share_weight * 100, 1)}%)",
+                            "is_estimated": True,
+                            "data_source": "estimated_sector_template",
                         })
 
                         pe = process_emissions[pid]
@@ -149,6 +155,9 @@ class BaselineEngine:
                         else:
                             pe["scope3_partial"] += sub_tco2e
                         pe["tCO2e"] += sub_tco2e
+                        # If ANY contributing data is estimated, flag the whole process
+                        pe["is_estimated"] = True
+                        pe["data_source"] = "estimated_sector_template" if not pe["data_source"] == "mixed" else "mixed"
 
             # Case C: Fallback if no sector template unit processes defined
             else:
@@ -168,6 +177,8 @@ class BaselineEngine:
                     "unit": unit,
                     "month": month,
                     "attribution": "fallback",
+                    "is_estimated": False,
+                    "data_source": "measured",
                 })
                 pe = process_emissions[proc_key]
                 pe["unit_process"] = proc_key

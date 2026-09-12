@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
-from app.routers import auth, macc, orgs, reports, runs, sectors
+from app.routers import auth, macc, orgs, reports, runs, sectors, recommendations
 
 settings = get_settings()
 
@@ -61,8 +61,7 @@ app.include_router(sectors.router)
 app.include_router(runs.router)
 app.include_router(macc.router)
 app.include_router(reports.router)
-
-
+app.include_router(recommendations.router)
 @app.get("/")
 def read_root():
     return {
