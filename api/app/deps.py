@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -10,11 +10,11 @@ from app.db.session import get_db
 from app.models import Organization, User
 from app.security import decode_access_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    auth: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     db: Annotated[Session, Depends(get_db)],
 ) -> User:
     credentials_exception = HTTPException(
@@ -23,6 +23,10 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    if auth is None or not auth.credentials:
+        raise credentials_exception
+
+    token = auth.credentials
     try:
         payload = decode_access_token(token)
         user_id_str: str = payload.get("sub")
