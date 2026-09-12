@@ -27,11 +27,11 @@ export default function FacilityHubPage() {
     setSession(s);
 
     apiClient<RunResponse[]>("/runs")
-      .then((data) => {
+      .then((data: RunResponse[]) => {
         setRuns(data || []);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to load facility runs:", err);
         setError("Could not load calculation history for this facility.");
         setLoading(false);
