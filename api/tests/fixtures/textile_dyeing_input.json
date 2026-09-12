@@ -1,0 +1,27 @@
+{
+  "sector_id": "textile_dyeing",
+  "facility_name": "Surat Dyeing Works Unit 1",
+  "region": "IN_all_india",
+  "period_start": "2024-04-01",
+  "period_end": "2024-06-30",
+  "activities": [
+    {
+      "activity_type": "electricity_grid",
+      "quantity": 100000.0,
+      "unit": "kWh",
+      "unit_process": null
+    },
+    {
+      "activity_type": "coal_indian_bituminous",
+      "quantity": 40000.0,
+      "unit": "kg",
+      "unit_process": "dyeing_bath"
+    },
+    {
+      "activity_type": "diesel_hsd",
+      "quantity": 1000.0,
+      "unit": "litre",
+      "unit_process": "etp_utilities"
+    }
+  ]
+}

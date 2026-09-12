@@ -1,0 +1,29 @@
+{
+  "ef_version": "cea_v20.0_ipcc_ar6_defra_2024",
+  "totals": {
+    "scope1": 99.48,
+    "scope2": 71.17,
+    "scope3_partial": 0.0,
+    "total": 170.65
+  },
+  "top3_hotspots": [
+    {
+      "rank": 1,
+      "unit_process": "dyeing_bath",
+      "tCO2e": 111.034,
+      "share_pct": 65.07
+    },
+    {
+      "rank": 2,
+      "unit_process": "etp_utilities",
+      "tCO2e": 27.5895,
+      "share_pct": 16.17
+    },
+    {
+      "rank": 3,
+      "unit_process": "stenter_drying",
+      "tCO2e": 10.6755,
+      "share_pct": 6.26
+    }
+  ]
+}
