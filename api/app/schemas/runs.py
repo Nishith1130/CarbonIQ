@@ -40,6 +40,8 @@ class HotspotResponse(BaseModel):
     scope1: Decimal | None = None
     scope2: Decimal | None = None
     scope3_partial: Decimal | None = None
+    is_estimated: bool = False
+    data_source: str = "measured"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -52,6 +54,8 @@ class BaselineResultResponse(BaseModel):
     tCO2e: Decimal
     activity_data_id: uuid.UUID | None = None
     emission_factor_ref: str
+    is_estimated: bool = False
+    data_source: str = "measured"
 
     model_config = ConfigDict(from_attributes=True)
 

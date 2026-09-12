@@ -35,6 +35,8 @@ class HotspotRanker:
                 "scope1": p.get("scope1", Decimal("0.0")).quantize(Decimal("0.0001")),
                 "scope2": p.get("scope2", Decimal("0.0")).quantize(Decimal("0.0001")),
                 "scope3_partial": p.get("scope3_partial", Decimal("0.0")).quantize(Decimal("0.0001")),
+                "is_estimated": p.get("is_estimated", False),
+                "data_source": p.get("data_source", "measured"),
             })
 
         return hotspots

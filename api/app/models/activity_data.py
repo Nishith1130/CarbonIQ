@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer, Numeric, String, Uuid
+from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -24,6 +24,8 @@ class ActivityData(Base):
     unit: Mapped[str] = mapped_column(String(50), nullable=False)
     unit_process: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     month: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    data_source: Mapped[str] = mapped_column(String(50), default="measured", server_default="measured", nullable=False)
 
     run: Mapped["Run"] = relationship("Run", back_populates="activity_data")
     baseline_results: Mapped[list["BaselineResult"]] = relationship(

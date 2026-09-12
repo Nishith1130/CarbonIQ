@@ -95,6 +95,8 @@ def create_run(
             tCO2e=line["tCO2e"],
             activity_data_id=source_act_id,
             emission_factor_ref=line["emission_factor_ref"],
+            is_estimated=line.get("is_estimated", False),
+            data_source=line.get("data_source", "measured"),
         )
         db_line_items.append(base_row)
     db.add_all(db_line_items)
@@ -108,6 +110,8 @@ def create_run(
             unit_process=h["unit_process"],
             tCO2e=h["tCO2e"],
             share_pct=h["share_pct"],
+            is_estimated=h.get("is_estimated", False),
+            data_source=h.get("data_source", "measured"),
         )
         db_hotspots.append(h_row)
     db.add_all(db_hotspots)
@@ -127,6 +131,8 @@ def create_run(
             scope1=h_dict.get("scope1"),
             scope2=h_dict.get("scope2"),
             scope3_partial=h_dict.get("scope3_partial"),
+            is_estimated=h_obj.is_estimated,
+            data_source=h_obj.data_source,
         )
         for h_obj, h_dict in zip(db_hotspots, hotspots_raw)
     ]
@@ -214,6 +220,8 @@ def get_run_by_id(
             unit_process_name=h.unit_process.replace("_", " ").title(),
             tCO2e=h.tCO2e,
             share_pct=h.share_pct,
+            is_estimated=h.is_estimated,
+            data_source=h.data_source,
         )
         for h in sorted_hotspots
     ]
@@ -286,6 +294,8 @@ def list_runs(
                         unit_process_name=h.unit_process.replace("_", " ").title(),
                         tCO2e=h.tCO2e,
                         share_pct=h.share_pct,
+                        is_estimated=h.is_estimated,
+                        data_source=h.data_source,
                     )
                     for h in sorted(run.hotspots, key=lambda x: x.rank)
                 ],
