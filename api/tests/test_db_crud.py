@@ -196,7 +196,7 @@ def test_report_blob_crud(db_session: Session, test_run: Run):
 
 
 def test_intervention_embedding_vector_crud(db_session: Session):
-    dummy_vector = [0.01 * (i % 10) for i in range(1536)]
+    dummy_vector = [0.01 * (i % 10) for i in range(3072)]
     embedding = InterventionEmbedding(
         intervention_id="tex_ro_water_recycle",
         sector_id="textile_dyeing",
@@ -208,7 +208,7 @@ def test_intervention_embedding_vector_crud(db_session: Session):
     db_session.refresh(embedding)
 
     assert embedding.id is not None
-    assert len(embedding.vector) == 1536
+    assert len(embedding.vector) == 3072
 
     # Query by intervention_id
     stmt = select(InterventionEmbedding).where(

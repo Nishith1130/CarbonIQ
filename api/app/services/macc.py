@@ -75,7 +75,7 @@ def calculate_macc_for_run(run: Run, db: Session) -> MACCResponse:
         for h in hotspots:
             try:
                 create_recommendations(db, run.id, h.id)
-            except Exception as e:
+            except Exception:
                 # Recommender has its own fallback, but we catch top-level errors just in case
                 pass
 

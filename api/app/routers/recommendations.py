@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/runs", tags=["recommendations"])
 class RecommendRequest(BaseModel):
     hotspot_id: uuid.UUID
 
-@router.post("/{run_id}/recommend", response_model=List[Dict[str, Any]])
+@router.post("/{run_id}/recommend", response_model=list[dict[str, Any]])
 def get_recommendation_for_hotspot(
     run_id: uuid.UUID,
     payload: RecommendRequest,
@@ -24,5 +24,5 @@ def get_recommendation_for_hotspot(
         return results
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Internal server error while generating recommendations.")

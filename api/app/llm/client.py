@@ -1,6 +1,6 @@
-import logging
 import json
-from typing import Any, Dict, List
+import logging
+from typing import Any
 
 from google import genai
 from google.genai import types as genai_types
@@ -37,7 +37,7 @@ def get_recommendations(
     unit_process: str,
     magnitude: float,
     share_pct: float,
-    candidates: List[Dict[str, Any]],
+    candidates: list[dict[str, Any]],
     is_estimated: bool = False,
     data_source: str = "measured",
 ) -> RecommendationOutput:

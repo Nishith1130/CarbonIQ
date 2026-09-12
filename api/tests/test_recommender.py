@@ -1,14 +1,11 @@
-import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-import uuid
+from unittest.mock import MagicMock, patch
 
 import pytest
 from sqlalchemy.orm import Session
 
 from app.models.hotspot import Hotspot
 from app.models.run import Run
-from app.models.recommendation import Recommendation
 from app.services.recommender import create_recommendations
 
 

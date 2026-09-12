@@ -10,7 +10,6 @@ import json
 import logging
 import tempfile
 from pathlib import Path
-from typing import List
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from google import genai
@@ -72,9 +71,9 @@ def _get_client() -> genai.Client:
 
 
 class ParsedBillResponse(BaseModel):
-    activities: List[ActivityDataInput]
+    activities: list[ActivityDataInput]
     file_count: int
-    warnings: List[str] = []
+    warnings: list[str] = []
 
 
 EXTRACTION_MODELS = [
@@ -86,7 +85,7 @@ EXTRACTION_MODELS = [
 
 
 @router.post("/bills", response_model=ParsedBillResponse)
-async def upload_bills(files: List[UploadFile] = File(...)):
+async def upload_bills(files: list[UploadFile] = File(...)):
     """
     Upload one or more PDF/image utility bills.
     Returns extracted activity data merged from all files,
@@ -96,8 +95,8 @@ async def upload_bills(files: List[UploadFile] = File(...)):
         raise HTTPException(status_code=400, detail="No files provided.")
 
     client = _get_client()
-    all_activities: List[ActivityDataInput] = []
-    warnings: List[str] = []
+    all_activities: list[ActivityDataInput] = []
+    warnings: list[str] = []
 
     for upload in files:
         filename = upload.filename or "unknown"

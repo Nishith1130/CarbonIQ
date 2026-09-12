@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Upload,
   FileText,
-  X,
   CheckCircle2,
   Loader2,
   ClipboardList,
@@ -188,7 +187,7 @@ function BillEntryContent() {
 
       const data: ParsedBillResponse = await res.json();
 
-      if (data.activities.length > 0) {
+      if (data.activities && data.activities.length > 0) {
         // Auto-fill the manual entry table and switch to it
         setActivities(
           data.activities.map((a) => ({
@@ -246,10 +245,10 @@ function BillEntryContent() {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
   const getActivityIcon = (type: string) => {
-    if (type.includes("electric")) return <Zap className="w-4 h-4 text-electric-blue" />;
+    if (type.includes("electric")) return <Zap className="w-4 h-4 text-blue-600" />;
     if (type.includes("coal") || type.includes("biomass") || type.includes("gas"))
-      return <Flame className="w-4 h-4 text-tangerine" />;
-    return <Fuel className="w-4 h-4 text-graphite" />;
+      return <Flame className="w-4 h-4 text-orange-500" />;
+    return <Fuel className="w-4 h-4 text-gray-500" />;
   };
 
   const getActivityLabel = (type: string) => {
@@ -263,8 +262,8 @@ function BillEntryContent() {
   if (loading) {
     return (
       <div className="py-20 text-center">
-        <div className="inline-flex items-center gap-2 text-steel text-sm font-mono">
-          <span className="w-2 h-2 rounded-full bg-electric-blue animate-pulse"></span>
+        <div className="inline-flex items-center gap-2 text-gray-500 text-sm">
+          <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
           <span>Loading sector bill templates...</span>
         </div>
       </div>
@@ -273,30 +272,34 @@ function BillEntryContent() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-5xl mx-auto space-y-4">
+      {/* Step and Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-fog uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-widest mb-1.5">
             <span>Step 2 of 3</span>
             <span>•</span>
             <span>Utility &amp; Fuel Bill Ledger</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-midnight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
             Log Facility Energy &amp; Activity Bills
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-steel">
-            Enter bills manually or upload PDFs — CarbonIQ will extract and auto-fill the data.
+          <p className="mt-1 text-sm text-gray-500">
+            Enter bills manually or upload PDFs — CarbonIQ extracts and disaggregates into process hotspots.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleLoadSuratDemo}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-paper border border-ash hover:border-smoke hover:bg-canvas text-xs font-medium text-midnight shadow-subtle transition"
-        >
-          <Sparkles className="w-4 h-4 text-electric-blue" />
-          <span>Load Surat Textile Mill Demo</span>
-        </button>
+
+        {/* 1-Click Golden Demo Preset Button */}
+        <div>
+          <button
+            type="button"
+            onClick={handleLoadSuratDemo}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-50 border border-blue-100 hover:bg-blue-100 text-sm font-semibold text-blue-700 transition-all shadow-sm"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Load Surat Textile Mill Demo</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -307,15 +310,15 @@ function BillEntryContent() {
       )}
 
       {/* Tab Switcher */}
-      <div className="flex gap-1 p-1 bg-paper border border-ash rounded-xl w-fit">
+      <div className="flex gap-1 p-1 bg-gray-100 border border-gray-200 rounded-xl w-fit">
         <button
           id="tab-manual"
           type="button"
           onClick={() => setActiveTab("manual")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
             activeTab === "manual"
-              ? "bg-canvas border border-ash shadow-subtle text-midnight"
-              : "text-steel hover:text-midnight"
+              ? "bg-white border border-gray-200 shadow-sm text-gray-900 font-semibold"
+              : "text-gray-500 hover:text-gray-900"
           }`}
         >
           <ClipboardList className="w-3.5 h-3.5" />
@@ -327,34 +330,40 @@ function BillEntryContent() {
           onClick={() => setActiveTab("pdf")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
             activeTab === "pdf"
-              ? "bg-canvas border border-ash shadow-subtle text-midnight"
-              : "text-steel hover:text-midnight"
+              ? "bg-white border border-gray-200 shadow-sm text-gray-900 font-semibold"
+              : "text-gray-500 hover:text-gray-900"
           }`}
         >
           <Upload className="w-3.5 h-3.5" />
           PDF Upload
-          <span className="px-1.5 py-0.5 rounded-full bg-electric-blue/10 text-electric-blue text-[10px] font-semibold">AI</span>
+          <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">AI</span>
         </button>
       </div>
 
       {/* ── PDF UPLOAD PANEL ─────────────────────────────────────────────────── */}
       {activeTab === "pdf" && (
-        <div className="bg-canvas border border-ash rounded-xl p-6 shadow-subtle space-y-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-5">
           <div>
-            <h2 className="text-sm font-semibold text-midnight">AI-Powered Bill Extraction</h2>
-            <p className="text-xs text-steel mt-1">
+            <h2 className="text-sm font-semibold text-gray-900">AI-Powered Bill Extraction</h2>
+            <p className="text-xs text-gray-500 mt-1">
               Upload one or more PDF utility bills. Gemini AI will read them and auto-fill the entry table below. You can review &amp; edit before submitting.
             </p>
           </div>
 
-          {/* Drop Zone */}
+          {/* Drag & Drop Zone */}
           <div
             id="pdf-dropzone"
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center gap-3 transition-all duration-200 cursor-pointer
-              ${isDragging ? "border-electric-blue bg-electric-blue/5" : "border-ash hover:border-smoke bg-paper/40 hover:bg-paper"}`}
+            className={`relative flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-xl transition-all cursor-pointer ${
+              isDragging
+                ? "border-blue-500 bg-blue-50/50"
+                : "border-gray-200 hover:border-gray-300 bg-gray-50/50"
+            }`}
           >
             <input
               id="pdf-file-input"
@@ -364,43 +373,44 @@ function BillEntryContent() {
               onChange={handleFileInput}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
-            <div className={`p-3 rounded-full border ${isDragging ? "border-electric-blue bg-electric-blue/10" : "border-ash bg-canvas"} transition`}>
-              <Upload className={`w-6 h-6 ${isDragging ? "text-electric-blue" : "text-steel"}`} />
+            <div className={`p-3 rounded-full border ${isDragging ? "border-blue-300 bg-blue-100" : "border-gray-200 bg-white"} transition`}>
+              <Upload className={`w-6 h-6 ${isDragging ? "text-blue-600" : "text-gray-400"}`} />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-midnight">
+              <p className="text-sm font-medium text-gray-900">
                 {isDragging ? "Drop files here" : "Drag & drop PDF bills here"}
               </p>
-              <p className="text-xs text-fog mt-1">or click to browse — PDF, PNG, JPG supported</p>
+              <p className="text-xs text-gray-400 mt-1">or click to browse — PDF, PNG, JPG supported</p>
             </div>
           </div>
 
           {/* File List */}
           {uploadedFiles.length > 0 && (
             <div className="space-y-2">
+              <p className="text-xs font-semibold text-gray-700">Selected Files ({uploadedFiles.length})</p>
               {uploadedFiles.map((file, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 px-3.5 py-2.5 bg-paper border border-ash rounded-lg"
+                  className="flex items-center justify-between gap-3 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs"
                 >
-                  <FileText className="w-4 h-4 text-electric-blue flex-shrink-0" />
-                  <span className="text-xs font-medium text-midnight flex-1 truncate">{file.name}</span>
-                  <span className="text-[10px] font-mono text-fog">
+                  <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                  <span className="text-xs font-medium text-gray-900 flex-1 truncate">{file.name}</span>
+                  <span className="text-[10px] font-mono text-gray-400">
                     {(file.size / 1024).toFixed(1)} KB
                   </span>
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="p-1 text-silver hover:text-red-500 transition"
+                    className="p-1 text-gray-400 hover:text-red-600 transition"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Parse Success Banner */}
+          {/* Status feedback */}
           {parseSuccess && (
             <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700">
               <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -424,7 +434,7 @@ function BillEntryContent() {
             type="button"
             onClick={handleParsePDFs}
             disabled={parsing || uploadedFiles.length === 0}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-electric-blue hover:bg-deep-sapphire text-white text-sm font-medium transition disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition disabled:opacity-50"
           >
             {parsing ? (
               <>
@@ -443,10 +453,10 @@ function BillEntryContent() {
 
       {/* ── MANUAL ENTRY FORM ─────────────────────────────────────────────────── */}
       {activeTab === "manual" && (
-        <form onSubmit={handleSubmit} className="bg-canvas border border-ash rounded-xl p-6 shadow-subtle space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6">
           {/* If auto-filled from PDF, show a notice */}
           {parseSuccess && (
-            <div className="flex items-start gap-2 p-3 bg-electric-blue/5 border border-electric-blue/20 rounded-lg text-xs text-electric-blue">
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>
                 The table below was auto-filled from your uploaded bills. Please review and correct any values before submitting.
@@ -455,27 +465,27 @@ function BillEntryContent() {
           )}
 
           {/* Accounting Period */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-5 border-b border-ash">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-5 border-b border-gray-100">
             <div>
-              <label className="block text-xs font-medium text-charcoal mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Billing Period Start Date
               </label>
               <input
                 type="date"
                 value={periodStart}
                 onChange={(e) => setPeriodStart(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-mono border border-ash rounded-input bg-canvas text-midnight focus:outline-none focus:border-midnight"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-charcoal mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Billing Period End Date
               </label>
               <input
                 type="date"
                 value={periodEnd}
                 onChange={(e) => setPeriodEnd(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-mono border border-ash rounded-input bg-canvas text-midnight focus:outline-none focus:border-midnight"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
           </div>
@@ -483,8 +493,8 @@ function BillEntryContent() {
           {/* Activity Rows */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-midnight">Energy &amp; Fuel Line Items</h3>
-              <span className="text-[11px] font-mono text-fog">
+              <h3 className="text-sm font-semibold text-gray-900">Energy &amp; Fuel Line Items</h3>
+              <span className="text-[11px] font-mono text-gray-400">
                 CEA v20.0 (India Grid Factor: 0.7117 tCO₂/MWh)
               </span>
             </div>
@@ -493,17 +503,17 @@ function BillEntryContent() {
               {activities.map((act, index) => (
                 <div
                   key={index}
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 bg-paper/50 border border-ash rounded-lg transition hover:border-smoke"
+                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 bg-gray-50 border border-gray-200 rounded-lg transition hover:border-gray-300"
                 >
                   <div className="flex items-center gap-2.5 flex-1 min-w-[200px]">
-                    <div className="p-1.5 rounded bg-canvas border border-ash flex items-center justify-center">
+                    <div className="p-1.5 rounded bg-white border border-gray-200 flex items-center justify-center">
                       {getActivityIcon(act.activity_type)}
                     </div>
                     <div>
-                      <span className="text-xs font-medium text-midnight block">
+                      <span className="text-xs font-medium text-gray-900 block">
                         {getActivityLabel(act.activity_type)}
                       </span>
-                      <span className="text-[10px] font-mono text-fog uppercase">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">
                         {act.activity_type}
                       </span>
                     </div>
@@ -519,15 +529,15 @@ function BillEntryContent() {
                         value={act.quantity === 0 ? "" : act.quantity}
                         onChange={(e) => handleUpdateQuantity(index, e.target.value)}
                         placeholder="0"
-                        className="w-full px-3 py-1.5 text-sm font-mono border border-ash rounded-input bg-canvas text-midnight text-right focus:outline-none focus:border-midnight"
+                        className="w-full px-3 py-1.5 text-sm font-mono border border-gray-200 rounded-lg bg-white text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                     </div>
-                    <span className="w-16 text-xs font-mono text-steel">{act.unit}</span>
+                    <span className="w-16 text-xs font-mono text-gray-500">{act.unit}</span>
                     {activities.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveLineItem(index)}
-                        className="p-1.5 text-silver hover:text-red-600 transition"
+                        className="p-1.5 text-gray-400 hover:text-red-600 transition"
                         title="Remove bill line"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -541,7 +551,7 @@ function BillEntryContent() {
             <button
               type="button"
               onClick={handleAddLineItem}
-              className="flex items-center gap-1.5 text-xs text-electric-blue hover:text-deep-sapphire font-medium pt-2 transition"
+              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium pt-2 transition"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add another utility bill line</span>
@@ -549,9 +559,9 @@ function BillEntryContent() {
           </div>
 
           {/* Submit Actions */}
-          <div className="pt-4 border-t border-ash flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs text-steel">
-              <ShieldCheck className="w-4 h-4 text-vivid-green flex-shrink-0" />
+          <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
               <span>Deterministic ISO 14064-1 &amp; GHG Protocol Scope 1, 2, 3 verification</span>
             </div>
 
@@ -559,7 +569,7 @@ function BillEntryContent() {
               id="btn-calculate"
               type="submit"
               disabled={submitting}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-midnight hover:bg-charcoal text-canvas text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-gray-900 hover:bg-black text-white text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-sm"
             >
               {submitting ? (
                 <>
@@ -584,7 +594,7 @@ export default function BillEntryPage() {
   return (
     <Suspense
       fallback={
-        <div className="py-20 text-center text-xs font-mono text-fog">
+        <div className="py-20 text-center text-xs font-mono text-gray-400">
           Loading Bill Entry...
         </div>
       }

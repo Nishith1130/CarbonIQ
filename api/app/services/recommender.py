@@ -1,16 +1,16 @@
 import logging
 import uuid
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.llm.client import get_recommendations
-from app.llm.schemas import RecommendationOutput, RecommendationItem
+from app.llm.schemas import RecommendationItem
 from app.models.hotspot import Hotspot
-from app.models.recommendation import Recommendation
 from app.models.organization import Organization
+from app.models.recommendation import Recommendation
 from app.models.run import Run
-from app.services.intervention_index import search_candidates, get_intervention_by_id
+from app.services.intervention_index import get_intervention_by_id, search_candidates
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def create_recommendations(
     db: Session,
     run_id: uuid.UUID,
     hotspot_id: uuid.UUID,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     # 1. Fetch Hotspot and Run Context
     hotspot = db.query(Hotspot).filter(Hotspot.id == hotspot_id, Hotspot.run_id == run_id).first()
     if not hotspot:

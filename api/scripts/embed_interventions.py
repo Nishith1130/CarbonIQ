@@ -1,14 +1,13 @@
-import os
-import sys
 import json
+import sys
 from pathlib import Path
 
 # Add api directory to path to allow importing app modules
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.db.session import SessionLocal
-from app.models.intervention_embedding import InterventionEmbedding
 from app.llm.embedding import embed_document
+from app.models.intervention_embedding import InterventionEmbedding
 
 
 def embed_interventions():

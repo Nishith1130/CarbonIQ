@@ -8,7 +8,6 @@ Create Date: 2026-09-12 22:20:00.000000
 from collections.abc import Sequence
 
 from alembic import op
-from pgvector.sqlalchemy import Vector
 
 # revision identifiers, used by Alembic.
 revision: str = "0002_resize_embedding_vector"

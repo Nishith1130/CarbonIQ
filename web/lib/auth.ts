@@ -1,32 +1,62 @@
-import { TokenResponse } from "./types";
+import { TokenResponse, User } from "./types";
 
-export function saveSession(session: TokenResponse) {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("carboniq_session", JSON.stringify(session));
-    localStorage.setItem("carboniq_token", session.access_token);
-  }
+const TOKEN_KEY = "carboniq_access_token";
+const USER_KEY = "carboniq_user_data";
+const SESSION_KEY = "carboniq_session_data";
+
+export function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem("carboniq_token");
+}
+
+export function setToken(token: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem("carboniq_token", token);
+}
+
+export function saveSession(session: TokenResponse): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(TOKEN_KEY, session.access_token);
+  localStorage.setItem("carboniq_token", session.access_token);
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  localStorage.setItem("carboniq_session", JSON.stringify(session));
 }
 
 export function getSession(): TokenResponse | null {
-  if (typeof window !== "undefined") {
-    const str = localStorage.getItem("carboniq_session");
-    if (str) return JSON.parse(str);
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(SESSION_KEY) || localStorage.getItem("carboniq_session");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as TokenResponse;
+  } catch {
+    return null;
   }
-  return null;
 }
 
-export function getToken(): string | null {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("carboniq_token");
-  }
-  return null;
+export function removeToken(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("carboniq_token");
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("carboniq_session");
 }
 
-export function removeToken() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("carboniq_session");
-    localStorage.removeItem("carboniq_token");
+export function getUser(): User | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as User;
+  } catch {
+    return null;
   }
+}
+
+export function setUser(user: User): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export function isAuthenticated(): boolean {

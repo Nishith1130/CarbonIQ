@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
-from app.routers import auth, macc, orgs, reports, runs, sectors, recommendations, upload
+from app.routers import auth, macc, orgs, recommendations, reports, runs, sectors, upload
 
 settings = get_settings()
 
