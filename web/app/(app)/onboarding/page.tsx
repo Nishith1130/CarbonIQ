@@ -86,15 +86,15 @@ export default function OnboardingPage() {
     <div className="space-y-8">
       {/* Header section */}
       <div>
-        <div className="flex items-center gap-2 text-xs font-mono text-fog uppercase tracking-wider mb-1">
+        <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-widest mb-1.5">
           <span>Step 1 of 3</span>
           <span>•</span>
           <span>Industrial Sector Baseline Taxonomy</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-midnight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
           Select Your Facility Sector Template
         </h1>
-        <p className="mt-1.5 text-sm text-steel max-w-2xl">
+        <p className="mt-1.5 text-sm text-gray-500 max-w-2xl">
           CarbonIQ applies Ministry of Power Bureau of Energy Efficiency (BEE) benchmark splits to allocate aggregate monthly utility bills into unit-level process emission hotspots.
         </p>
       </div>
@@ -115,60 +115,60 @@ export default function OnboardingPage() {
           return (
             <div
               key={sector.sector_id}
-              className={`bg-canvas border rounded-xl p-5 flex flex-col justify-between transition-all hover:border-smoke hover:shadow-subtle relative ${
-                isUserSector ? "border-midnight ring-1 ring-midnight/10" : "border-ash"
+              className={`bg-white border rounded-xl p-5 flex flex-col justify-between transition-all hover:shadow-md hover:-translate-y-0.5 relative group ${
+                isUserSector ? "border-blue-500 ring-1 ring-blue-500/20" : "border-gray-200 hover:border-blue-200"
               }`}
             >
               {isUserSector && (
-                <div className="absolute top-3 right-3 px-2 py-0.5 rounded-pill bg-paper border border-ash text-[10px] font-mono text-midnight flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-vivid-green" />
+                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[10px] font-semibold tracking-wide uppercase text-blue-700 flex items-center gap-1.5 shadow-sm">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
                   <span>Facility Match</span>
                 </div>
               )}
 
               <div>
-                <div className="w-10 h-10 rounded-lg bg-paper border border-ash flex items-center justify-center text-midnight mb-4">
-                  <Factory className="w-5 h-5 text-graphite" />
+                <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-600 mb-4 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-100">
+                  <Factory className="w-5 h-5" />
                 </div>
 
-                <h3 className="font-semibold text-base text-midnight mb-1">
+                <h3 className="font-bold text-lg text-gray-900 mb-1">
                   {sector.name}
                 </h3>
-                <div className="text-xs font-mono text-fog mb-3">
+                <div className="text-[13px] font-semibold text-blue-600 mb-3">
                   {meta.cluster}
                 </div>
 
-                <p className="text-xs text-steel leading-relaxed mb-4 line-clamp-3">
+                <p className="text-[13px] text-gray-500 leading-relaxed mb-4 line-clamp-3">
                   {sector.description}
                 </p>
 
                 {/* Energy & Hotspot Specs */}
-                <div className="p-3 bg-paper/50 border border-ash/70 rounded-lg space-y-1.5 text-xs font-mono mb-4">
-                  <div className="flex items-center justify-between text-charcoal">
-                    <span className="text-fog">Fuel Mix:</span>
-                    <span>{meta.thermal}</span>
+                <div className="p-3 bg-gray-50 border border-gray-100 rounded-lg space-y-2 text-[13px] mb-5">
+                  <div className="flex items-start justify-between gap-2 text-gray-700">
+                    <span className="text-gray-500 font-medium whitespace-nowrap">Fuel Mix:</span>
+                    <span className="text-gray-900 font-semibold text-right leading-snug">{meta.thermal}</span>
                   </div>
-                  <div className="flex items-center justify-between text-charcoal">
-                    <span className="text-fog">Electricity:</span>
-                    <span>{meta.electric}</span>
+                  <div className="flex items-start justify-between gap-2 text-gray-700">
+                    <span className="text-gray-500 font-medium whitespace-nowrap">Electricity:</span>
+                    <span className="text-gray-900 font-semibold text-right leading-snug">{meta.electric}</span>
                   </div>
-                  <div className="pt-1 border-t border-ash/50 text-[11px] text-steel">
-                    <span className="text-fog block mb-0.5">Core Hotspots:</span>
-                    <span className="font-sans font-medium text-midnight">{meta.hotspotFocus}</span>
+                  <div className="pt-2.5 mt-1 border-t border-gray-200/80">
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Core Hotspots</span>
+                    <span className="text-gray-900 font-medium leading-snug block">{meta.hotspotFocus}</span>
                   </div>
                 </div>
               </div>
 
               <button
                 onClick={() => handleSelectSector(sector.sector_id)}
-                className={`w-full py-2.5 px-4 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                className={`w-full py-2.5 px-4 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all shadow-sm ${
                   isUserSector
-                    ? "bg-midnight hover:bg-charcoal text-canvas"
-                    : "bg-paper hover:bg-canvas border border-ash text-charcoal"
+                    ? "bg-[#0A0A0A] hover:bg-black text-white"
+                    : "bg-white hover:bg-gray-50 border border-gray-200 text-gray-700"
                 }`}
               >
                 <span>Enter Energy Bills</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           );
@@ -176,10 +176,11 @@ export default function OnboardingPage() {
       </div>
 
       {/* Cluster Benchmark Reference Note */}
-      <div className="p-4 bg-paper/40 border border-ash rounded-xl flex items-start gap-3 text-xs text-steel">
-        <Layers className="w-4 h-4 text-electric-blue flex-shrink-0 mt-0.5" />
+      <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex items-start gap-3 text-[13px] text-gray-600">
+        <Layers className="w-5 h-5 text-blue-500 flex-shrink-0" />
         <p>
-          <strong className="text-midnight font-medium">BEE SME Benchmark Integration:</strong> Activity entries automatically inherit CEA v20.0 national emission grid factors (0.7117 tCO₂/MWh) and unit process split allocations calibrated from 150+ audited Indian SME industrial clusters.
+          <strong className="text-gray-900 font-semibold block mb-0.5">BEE SME Benchmark Integration</strong> 
+          Activity entries automatically inherit CEA v20.0 national emission grid factors (0.7117 tCO₂/MWh) and unit process split allocations calibrated from 150+ audited Indian SME industrial clusters.
         </p>
       </div>
     </div>
