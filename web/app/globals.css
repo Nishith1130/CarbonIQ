@@ -42,3 +42,19 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a3a3a3;
 }
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold transition-all shadow-sm hover:shadow whitespace-nowrap;
+  }
+  .btn-ghost {
+    @apply px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium;
+  }
+  .chip-brand {
+    @apply bg-blue-50 text-blue-700 border border-blue-200/80;
+  }
+}
+
