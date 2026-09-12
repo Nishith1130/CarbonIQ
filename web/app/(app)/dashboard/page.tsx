@@ -140,6 +140,71 @@ export default function FacilityHubPage() {
   const currentTierConfig = VERIFICATION_CONFIGS[verificationTier];
   const TierIcon = currentTierConfig.icon;
 
+  // --------------------------------------------------------------------------
+  // FY aggregate — sum all runs whose period_end falls within the same FY as
+  // the latest run. Indian FY runs April 1 → March 31.
+  // --------------------------------------------------------------------------
+  const fyOfDate = (iso?: string | null) => {
+    if (!iso) return { label: "FY —", startYear: 0, endYear: 0 };
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const startYear = d.getMonth() >= 3 ? y : y - 1;
+    const endYear = startYear + 1;
+    return {
+      label: `FY ${startYear}-${String(endYear).slice(2)}`,
+      startYear,
+      endYear,
+    };
+  };
+
+  const currentFy = fyOfDate(latestRun?.period_end || latestRun?.created_at);
+  const fyStart = new Date(`${currentFy.startYear}-04-01`);
+  const fyEnd = new Date(`${currentFy.endYear}-03-31`);
+
+  const fyRuns = runs.filter((r) => {
+    const end = new Date(r.period_end || r.created_at);
+    return end >= fyStart && end <= fyEnd;
+  });
+
+  const fyAggregate = fyRuns.reduce(
+    (acc, r) => ({
+      scope1: acc.scope1 + Number(r.totals?.scope1 || 0),
+      scope2: acc.scope2 + Number(r.totals?.scope2 || 0),
+      scope3_partial: acc.scope3_partial + Number(r.totals?.scope3_partial || 0),
+      total: acc.total + Number(r.totals?.total || 0),
+    }),
+    { scope1: 0, scope2: 0, scope3_partial: 0, total: 0 }
+  );
+
+  // Merge hotspots across all FY runs, ranking by summed tCO2e per unit_process.
+  const hotspotMap: Record<string, { unit_process: string; unit_process_name?: string; tCO2e: number }> = {};
+  fyRuns.forEach((r) => {
+    (r.hotspots || []).forEach((h) => {
+      const key = h.unit_process;
+      if (!hotspotMap[key]) {
+        hotspotMap[key] = {
+          unit_process: h.unit_process,
+          unit_process_name: h.unit_process_name,
+          tCO2e: 0,
+        };
+      }
+      hotspotMap[key].tCO2e += Number(h.tCO2e || 0);
+    });
+  });
+  const rankedHotspots = Object.values(hotspotMap).sort((a, b) => b.tCO2e - a.tCO2e);
+  const topHotspot = rankedHotspots[0];
+  const topHotspotShare =
+    topHotspot && fyAggregate.total > 0
+      ? (topHotspot.tCO2e / fyAggregate.total) * 100
+      : 0;
+
+  const latestPeriodLabel = latestRun?.period_end
+    ? new Date(latestRun.period_end).toLocaleDateString("en-GB", {
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
   // Format verification timestamp (use run creation date or fallback)
   const verificationDate = latestRun?.created_at
     ? new Date(latestRun.created_at).toLocaleDateString("en-GB", {
@@ -156,37 +221,22 @@ export default function FacilityHubPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-10">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-3">
-            {session?.org_name || "Facility Overview"}
-          </h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-            <span className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-medium">
-              <Factory className="w-4 h-4" />
-              {session?.sector_id ? session.sector_id.replace("_", " ").toUpperCase() : "TEXTILE PROCESSING"}
-            </span>
-            <span>Tenant ID: <span className="font-mono text-gray-600">{session?.org_id?.slice(0, 8) || "demo"}</span></span>
-            <span className="hidden sm:inline text-gray-300">•</span>
-            <span className="hidden sm:inline">Grid: CEA v20.0 (0.7117 tCO₂/MWh)</span>
-            <span className="hidden sm:inline text-gray-300">•</span>
-            {/* Live Data Freshness Badge */}
-            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-xs font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Data Freshness: Active • Updated {verificationDate}</span>
-            </span>
-          </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight text-ink-900">
+          {session?.org_name || "Surat Modern Dyeing Mills LLP"}
+        </h1>
+        <div className="mt-2 flex items-center gap-3 text-sm text-ink-500 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+            <Factory className="w-3 h-3" />
+            Textile Dyeing
+          </span>
+          <span>·</span>
+          <span>Reporting {currentFy.label}</span>
+          <span>·</span>
+          <span>
+            {fyRuns.length} {fyRuns.length === 1 ? "submission" : "submissions"} · Latest {latestPeriodLabel}
+          </span>
         </div>
-
-        {/* Primary SME Action: Log Monthly Data */}
-        <Link
-          href="/entry"
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[15px] font-semibold transition-all shadow-sm hover:shadow whitespace-nowrap"
-          title="Log monthly utility bills and fuel consumption"
-        >
-          <Plus className="w-5 h-5" />
-          <span>+ Log This Month&apos;s Data</span>
-        </Link>
       </div>
 
       {!latestRun ? (
@@ -279,62 +329,65 @@ export default function FacilityHubPage() {
             {/* Main Footprint Card */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm transition-all hover:border-gray-300">
               
-              {/* Top Section: Clickable Big Number & Actions */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-gray-100">
-                {/* Clickable Big Footprint Card -> Links to Full Deep-Dive */}
-                <Link
-                  href={`/dashboard/${latestRun.id}`}
-                  className="group block rounded-xl p-2 -m-2 transition-all hover:bg-gray-50/80 cursor-pointer"
-                  title="Click to view full emissions breakdown"
-                >
-                  <div className="text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span>Period: {latestRun.period_start || "2024-04-01"} — {latestRun.period_end || "2025-03-31"}</span>
-                    <span className="text-xs text-[#2563EB] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 font-medium ml-1">
-                      Deep-Dive Breakdown <ArrowRight className="w-3 h-3" />
-                    </span>
-                  </div>
-
-                  <div className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight flex items-baseline">
+              {/* Top Section: Period, Big Number & Actions — single line */}
+              <div className="pb-6 border-b border-gray-100">
+                {/* Period on its own line, above the big number */}
+                <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-2 flex-wrap">
+                  <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                  <span>
+                    {currentFy.label} · Running total across {fyRuns.length}{" "}
+                    {fyRuns.length === 1 ? "submission" : "submissions"}
+                  </span>
+                  <span className="text-gray-300">·</span>
+                  <span className="tabular-nums">
+                    Latest {latestPeriodLabel}:{" "}
                     {Number(latestRun.totals?.total || 0).toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
+                    })}{" "}
+                    tCO₂e
+                  </span>
+                </div>
+
+                {/* Big number + action buttons on ONE row */}
+                <div className="flex items-center justify-between gap-4 flex-nowrap">
+                  <div className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight flex items-baseline tabular-nums flex-shrink-0">
+                    {fyAggregate.total.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     })}
-                    <span className="text-xl sm:text-2xl font-medium text-gray-400 ml-2">tCO₂e</span>
+                    <span className="text-lg sm:text-xl font-medium text-gray-400 ml-2">tCO₂e</span>
                   </div>
-                </Link>
 
-                {/* Direct Action Links */}
-                <div className="flex flex-wrap sm:flex-nowrap gap-3">
-                  {/* Renamed "View Dashboard" -> "View Full Breakdown" */}
-                  <Link
-                    href={`/dashboard/${latestRun.id}`}
-                    className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs group"
-                  >
-                    <BarChart3 className="w-4 h-4 text-gray-300" />
-                    <span>View Full Breakdown</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
+                  <div className="flex items-center gap-2 flex-nowrap">
+                    <Link
+                      href={`/dashboard/${latestRun.id}`}
+                      className="px-3.5 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-[13px] font-semibold flex items-center gap-1.5 transition-colors shadow-xs whitespace-nowrap"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5 text-gray-300" />
+                      <span>View Full Breakdown</span>
+                    </Link>
 
-                  <Link
-                    href={`/dashboard/${latestRun.id}/macc`}
-                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-[14px] font-medium flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <TrendingDown className="w-4 h-4 text-emerald-600" />
-                    <span>Recommendations</span>
-                  </Link>
+                    <Link
+                      href={`/dashboard/${latestRun.id}/macc`}
+                      className="px-3 py-2 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap"
+                    >
+                      <TrendingDown className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Recommendations</span>
+                    </Link>
 
-                  <Link
-                    href={`/dashboard/${latestRun.id}/report`}
-                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-[14px] font-medium flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <FileText className="w-4 h-4 text-[#2563EB]" />
-                    <span>BRSR Report</span>
-                  </Link>
+                    <Link
+                      href={`/dashboard/${latestRun.id}/report`}
+                      className="px-3 py-2 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
+                      <span>BRSR Report</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
 
-              {/* Middle Section: Scopes & Top Hotspot */}
+              {/* Middle Section: FY-aggregate Scopes & Top Hotspot */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-6 border-b border-gray-100">
                 <Link
                   href={`/dashboard/${latestRun.id}`}
@@ -344,8 +397,8 @@ export default function FacilityHubPage() {
                     <Flame className="w-3.5 h-3.5 text-orange-500" />
                     Scope 1 (Direct Fuels)
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {Number(latestRun.totals?.scope1 || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}{" "}
+                  <div className="text-2xl font-bold text-gray-900 tabular-nums">
+                    {fyAggregate.scope1.toLocaleString(undefined, { maximumFractionDigits: 1 })}{" "}
                     <span className="text-sm text-gray-400 font-normal">tCO₂e</span>
                   </div>
                 </Link>
@@ -358,8 +411,8 @@ export default function FacilityHubPage() {
                     <Zap className="w-3.5 h-3.5 text-[#2563EB]" />
                     Scope 2 (Grid Power)
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {Number(latestRun.totals?.scope2 || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}{" "}
+                  <div className="text-2xl font-bold text-gray-900 tabular-nums">
+                    {fyAggregate.scope2.toLocaleString(undefined, { maximumFractionDigits: 1 })}{" "}
                     <span className="text-sm text-gray-400 font-normal">tCO₂e</span>
                   </div>
                 </Link>
@@ -368,13 +421,13 @@ export default function FacilityHubPage() {
                   <div className="text-gray-500 mb-1 text-xs font-semibold uppercase tracking-wider">
                     Top Unit Process Hotspot
                   </div>
-                  <div className="text-lg font-bold text-gray-900 truncate">
-                    {latestRun.hotspots?.[0]?.unit_process_name ||
-                      latestRun.hotspots?.[0]?.unit_process?.replace("_", " ").toUpperCase() ||
-                      "N/A"}
-                    {latestRun.hotspots?.[0] && (
+                  <div className="text-lg font-bold text-gray-900 truncate capitalize">
+                    {topHotspot
+                      ? (topHotspot.unit_process_name || topHotspot.unit_process).replace(/_/g, " ")
+                      : "N/A"}
+                    {topHotspot && (
                       <span className="text-orange-600 ml-2 text-base font-semibold">
-                        {Number(latestRun.hotspots[0].share_pct || 0).toFixed(1)}%
+                        {topHotspotShare.toFixed(1)}%
                       </span>
                     )}
                   </div>
@@ -398,86 +451,18 @@ export default function FacilityHubPage() {
             </div>
           </section>
 
-          {/* Submission & Audit Ledger Table */}
-          {runs.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 tracking-tight">
-                    Monthly Activity &amp; Submission Ledger
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    Historical submissions and verified carbon audit logs for this facility
-                  </p>
-                </div>
-                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                  {runs.length} {runs.length === 1 ? "Record" : "Records"} Logged
-                </span>
-              </div>
-
-              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold text-xs uppercase tracking-wider">
-                    <tr>
-                      <th className="px-6 py-3.5">Reporting Period</th>
-                      <th className="px-6 py-3.5">Assurance Status</th>
-                      <th className="px-6 py-3.5 text-right">Total (tCO₂e)</th>
-                      <th className="px-6 py-3.5 text-right">Scope 1</th>
-                      <th className="px-6 py-3.5 text-right">Scope 2</th>
-                      <th className="px-6 py-3.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {runs.map((r, idx) => (
-                      <tr key={r.id || idx} className="hover:bg-gray-50/80 transition-colors">
-                        <td className="px-6 py-4 text-gray-900 font-medium">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                            <span>
-                              {r.period_start || "2024-04-01"} — {r.period_end || "2025-03-31"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${currentTierConfig.badgeBg} ${currentTierConfig.badgeText} ${currentTierConfig.badgeBorder}`}>
-                            <TierIcon className="w-3 h-3" />
-                            <span>{verificationTier === "none" ? "Draft" : verificationTier === "assured" ? "Assured" : verificationTier === "3rd-party pending" ? "Pending" : "Self-Declared"}</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-gray-900">
-                          {Number(r.totals?.total || 0).toLocaleString(undefined, {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1,
-                          })}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-500 font-medium">
-                          {Number(r.totals?.scope1 || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-500 font-medium">
-                          {Number(r.totals?.scope2 || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <Link
-                              href={`/dashboard/${r.id}`}
-                              className="text-[#2563EB] hover:text-[#1D4ED8] font-semibold text-xs inline-flex items-center gap-1 hover:underline"
-                            >
-                              Deep-Dive <ArrowRight className="w-3 h-3" />
-                            </Link>
-                            <Link
-                              href={`/dashboard/${r.id}/report`}
-                              className="text-gray-500 hover:text-gray-900 text-xs hover:underline"
-                            >
-                              Report
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+          {/* Ledger moved to /reports — the dashboard now only shows the       */}
+          {/* headline card; historical submissions live on the Reports page.  */}
+          {runs.length > 1 && (
+            <div className="text-xs text-gray-500 text-center">
+              <Link
+                href="/reports"
+                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                View all {runs.length} historical reports
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           )}
         </div>
       )}
