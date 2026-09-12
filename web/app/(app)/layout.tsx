@@ -47,7 +47,7 @@ export default function AppLayout({
     <div className="min-h-screen bg-canvas text-charcoal flex flex-col font-sans selection:bg-electric-blue/10 selection:text-electric-blue">
       <AppHeader currentRunId={currentRunId} />
       
-      <main className="flex-1 max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-10">
         {children}
       </main>
 

@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { saveSession } from "@/lib/auth";
 import { TokenResponse } from "@/lib/types";
-import { ArrowRight, AlertCircle, Sparkles, Building2 } from "lucide-react";
+import { ArrowRight, AlertCircle, Sparkles, Building2, KeyRound, Mail, Map, Banknote } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -71,36 +72,30 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col justify-center py-10 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
-        <Link href="/" className="inline-flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-midnight flex items-center justify-center text-canvas font-bold text-base">
-            C
-          </div>
-          <span className="font-semibold text-xl tracking-tight text-midnight">
-            Carbon<span className="text-electric-blue">IQ</span>
-          </span>
-        </Link>
-        <h2 className="text-2xl font-semibold tracking-tight text-midnight">
-          Register SME Industrial Facility
-        </h2>
-        <p className="mt-1 text-xs text-steel">
-          Configure multi-tenant isolation, sector emission mapping, and BRSR compliance
-        </p>
-      </div>
+    <>
+      <AppHeader />
+      <div className="min-h-[calc(100vh-64px)] bg-paper flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-midnight mb-3 leading-tight">
+            Create Workspace
+          </h2>
+          <p className="text-base text-steel mb-10">
+            Configure multi-tenant isolation, sector emission mapping, and BRSR compliance
+          </p>
+        </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-lg px-4 sm:px-0">
-        <div className="bg-canvas border border-ash rounded-xl p-6 sm:p-8 shadow-subtle">
+      <div className="mt-2 sm:mx-auto sm:w-full sm:max-w-[560px]">
+        <div className="bg-canvas border border-ash/80 shadow-sm rounded-2xl p-8 sm:p-10">
           {error && (
-            <div className="mb-5 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-700">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600" />
+            <div className="mb-6 p-4 rounded-lg bg-red-50/80 border border-red-100 flex items-start gap-3 text-sm text-red-800">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-xs font-medium text-charcoal mb-1">
+              <label className="block text-sm font-medium text-midnight mb-2">
                 Company / Mill Legal Entity Name
               </label>
               <input
@@ -109,13 +104,13 @@ export default function RegisterPage() {
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 placeholder="e.g. Apex Dyeing & Printing Works LLP"
-                className="w-full px-3 py-2 text-sm border border-ash rounded-input bg-canvas text-midnight placeholder:text-fog focus:outline-none focus:border-midnight transition"
+                className="w-full px-4 py-3 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-medium text-charcoal mb-1">
+                <label className="block text-sm font-medium text-midnight mb-2">
                   Plant Work Email
                 </label>
                 <input
@@ -124,13 +119,13 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@surattextile.in"
-                  className="w-full px-3 py-2 text-sm border border-ash rounded-input bg-canvas text-midnight placeholder:text-fog focus:outline-none focus:border-midnight transition"
+                  className="w-full px-4 py-3 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-charcoal mb-1">
-                  Password (min 6 chars)
+                <label className="block text-sm font-medium text-midnight mb-2">
+                  Password
                 </label>
                 <input
                   type="password"
@@ -139,20 +134,20 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-3 py-2 text-sm border border-ash rounded-input bg-canvas text-midnight placeholder:text-fog focus:outline-none focus:border-midnight transition"
+                  className="w-full px-4 py-3 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-medium text-charcoal mb-1">
+                <label className="block text-sm font-medium text-midnight mb-2">
                   Industrial Sector Cluster
                 </label>
                 <select
                   value={sectorId}
                   onChange={(e) => setSectorId(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-ash rounded-input bg-canvas text-midnight focus:outline-none focus:border-midnight transition"
+                  className="w-full px-4 py-3 text-sm border border-ash rounded-xl bg-canvas text-midnight focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors appearance-none relative"
                 >
                   <option value="textile_dyeing">Textile Dyeing & Processing</option>
                   <option value="foundry">Foundry & Metal Casting</option>
@@ -161,8 +156,8 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-charcoal mb-1">
-                  Annual Turnover (₹ Crore)
+                <label className="block text-sm font-medium text-midnight mb-2">
+                  Turnover (₹ Crore)
                 </label>
                 <input
                   type="number"
@@ -170,33 +165,40 @@ export default function RegisterPage() {
                   value={turnoverCrore}
                   onChange={(e) => setTurnoverCrore(e.target.value)}
                   placeholder="15.0"
-                  className="w-full px-3 py-2 text-sm border border-ash rounded-input bg-canvas text-midnight placeholder:text-fog focus:outline-none focus:border-midnight transition"
+                  className="w-full px-4 py-3 text-sm border border-ash rounded-xl bg-canvas text-midnight placeholder:text-silver focus:outline-none focus:ring-1 focus:ring-midnight focus:border-midnight transition-colors"
                 />
               </div>
             </div>
 
             {/* Export Markets / Compliance Scope */}
-            <div>
-              <label className="block text-xs font-medium text-charcoal mb-1.5">
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-midnight mb-3">
                 Supply Chain / Export Compliance Scope
               </label>
-              <div className="flex items-center gap-4 text-xs">
-                <label className="flex items-center gap-2 cursor-pointer text-charcoal">
-                  <input
-                    type="checkbox"
-                    checked={exportEU}
-                    onChange={(e) => setExportEU(e.target.checked)}
-                    className="rounded border-ash text-midnight focus:ring-0"
-                  />
-                  <span>EU (CBAM / Scope 3 Supply Chain)</span>
+              <div className="flex flex-col sm:flex-row gap-4 text-sm">
+                <label className="flex items-center gap-3 cursor-pointer text-midnight group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={exportEU}
+                      onChange={(e) => setExportEU(e.target.checked)}
+                      className="peer appearance-none w-5 h-5 border border-ash rounded bg-canvas checked:bg-midnight checked:border-midnight focus:outline-none focus:ring-2 focus:ring-midnight/30 transition-all cursor-pointer"
+                    />
+                    <svg className="absolute w-3.5 h-3.5 text-canvas opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  <span>EU (CBAM / Scope 3)</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer text-charcoal">
-                  <input
-                    type="checkbox"
-                    checked={exportUS}
-                    onChange={(e) => setExportUS(e.target.checked)}
-                    className="rounded border-ash text-midnight focus:ring-0"
-                  />
+                
+                <label className="flex items-center gap-3 cursor-pointer text-midnight group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={exportUS}
+                      onChange={(e) => setExportUS(e.target.checked)}
+                      className="peer appearance-none w-5 h-5 border border-ash rounded bg-canvas checked:bg-midnight checked:border-midnight focus:outline-none focus:ring-2 focus:ring-midnight/30 transition-all cursor-pointer"
+                    />
+                    <svg className="absolute w-3.5 h-3.5 text-canvas opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
                   <span>US / Global Export</span>
                 </label>
               </div>
@@ -205,42 +207,39 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-midnight hover:bg-charcoal text-canvas text-sm font-medium transition disabled:opacity-50"
+              className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-midnight hover:bg-charcoal text-canvas text-base font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {loading ? (
                 <span>Registering facility...</span>
               ) : (
-                <>
-                  <span>Create SME Workspace</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>Create Workspace</span>
               )}
             </button>
           </form>
 
           {/* Preset Button */}
-          <div className="mt-5 pt-5 border-t border-ash">
+          <div className="mt-8 pt-8 border-t border-ash/50">
             <button
               type="button"
               onClick={handleDemoPreset}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-paper border border-ash hover:border-smoke text-xs text-charcoal font-medium transition"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-paper border border-ash hover:border-charcoal hover:bg-ash/20 text-sm text-charcoal font-medium transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5 text-electric-blue" />
-              <span>Autofill Sample Surat Textile SME Profile</span>
+              Autofill demo profile
             </button>
           </div>
 
-          <div className="mt-6 text-center text-xs text-steel">
+          <div className="mt-10 text-center text-sm text-steel">
             Already have an active facility account?{" "}
             <Link
               href="/login"
-              className="font-medium text-electric-blue hover:underline"
+              className="font-medium text-midnight hover:text-electric-blue transition-colors underline decoration-ash underline-offset-4 hover:decoration-electric-blue"
             >
-              Sign In
+              Sign in
             </Link>
           </div>
         </div>
       </div>
     </div>
+    </>
   );
 }
