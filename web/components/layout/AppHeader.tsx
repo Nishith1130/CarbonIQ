@@ -74,7 +74,7 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-gray-900">{session.org_name}</span>
-                <span className="text-[11px] text-gray-500 font-mono">{session.email}</span>
+                <span className="text-[11px] text-gray-500">{session.email}</span>
               </div>
               <button
                 onClick={handleLogout}
