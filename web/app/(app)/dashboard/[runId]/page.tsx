@@ -18,6 +18,8 @@ import {
   Layers,
   Sparkles,
   BarChart2,
+  Bot,
+  FileText,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -28,6 +30,25 @@ export default function DashboardPage() {
   const [run, setRun] = useState<RunResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // AI State
+  const [aiRecommendations, setAiRecommendations] = useState<any[] | null>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
+
+  const generateAiRecommendations = async () => {
+    setLoadingAi(true);
+    try {
+      const res = await apiClient<any>(`/runs/${runId}/recommend`, { method: "POST" });
+      if (res.recommendations) {
+        // Sort by rank across hotspots if needed, or just display as returned
+        setAiRecommendations(res.recommendations);
+      }
+    } catch (err) {
+      console.error("Failed to generate AI recommendations", err);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
 
   useEffect(() => {
     if (!runId) return;
@@ -219,6 +240,59 @@ export default function DashboardPage() {
 
           <HotspotBar hotspots={run.hotspots} />
         </div>
+      </div>
+
+      {/* AI RAG Recommendations Section */}
+      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-100 rounded-xl p-5 shadow-sm mt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono text-blue-600 mb-1">
+              <Bot className="w-4 h-4" />
+              <span>AI Strategic Insights</span>
+            </div>
+            <h3 className="text-lg font-semibold tracking-tight text-gray-900">
+              Generate Contextual RAG Recommendations
+            </h3>
+            <p className="text-xs text-gray-600 mt-1 max-w-xl">
+              Use our AI engine to retrieve domain-specific interventions tailored to your top hotspots. The LLM ranks options and provides rationale while keeping emissions deterministic.
+            </p>
+          </div>
+
+          <button
+            onClick={generateAiRecommendations}
+            disabled={loadingAi}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition disabled:opacity-50"
+          >
+            {loadingAi ? "Analyzing Hotspots..." : "Generate Insights"}
+            <Sparkles className="w-4 h-4" />
+          </button>
+        </div>
+
+        {aiRecommendations && aiRecommendations.length > 0 && (
+          <div className="mt-5 space-y-3">
+            {aiRecommendations.map((rec, idx) => (
+              <div key={idx} className="bg-white border border-blue-100 rounded-lg p-4 shadow-sm hover:shadow-md transition">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                    {rec.rank}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-1">
+                      {rec.intervention_id.replace(/_/g, " ")}
+                    </h4>
+                    <p className="text-[13px] text-gray-700 leading-relaxed mb-2">
+                      {rec.rationale}
+                    </p>
+                    <div className="text-[11px] font-mono text-gray-500 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5" />
+                      Citation: {rec.source_citation}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Callout to MACC Abatement Curve */}

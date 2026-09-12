@@ -293,3 +293,73 @@ def list_runs(
             )
         )
     return responses
+
+
+@router.post("/{run_id}/recommend")
+def generate_recommendations(
+    run_id: uuid.UUID,
+    current_org: Annotated[Organization, Depends(get_current_org)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """
+    Generate recommendations via RAG engine for the hotspots of a run.
+    Uses LLM to rank and provide rationale, safely falling back to metadata matches.
+    """
+    stmt = (
+        select(Run)
+        .where(Run.id == run_id, Run.org_id == current_org.id)
+        .options(selectinload(Run.hotspots), selectinload(Run.recommendations))
+    )
+    run = db.scalar(stmt)
+    if not run:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calculation run not found.",
+        )
+
+    # Return existing if already generated
+    if run.recommendations:
+        return {
+            "message": "Recommendations already exist.", 
+            "recommendations": [
+                {
+                    "intervention_id": r.intervention_id,
+                    "rank": r.rank,
+                    "rationale": r.rationale,
+                    "source_citation": r.source_citation
+                } for r in run.recommendations
+            ]
+        }
+
+    from app.services.rag_engine import get_recommendations
+    from app.models.recommendation import Recommendation
+
+    new_recs = []
+    for hotspot in run.hotspots:
+        rag_output = get_recommendations(sector_id=current_org.sector_id, hotspot_process=hotspot.unit_process)
+        for rec_data in rag_output:
+            rec = Recommendation(
+                run_id=run.id,
+                hotspot_id=hotspot.id,
+                intervention_id=rec_data["intervention_id"],
+                rank=rec_data["rank"],
+                rationale=rec_data["rationale"],
+                source_citation=rec_data["source_citation"],
+            )
+            new_recs.append(rec)
+
+    if new_recs:
+        db.add_all(new_recs)
+        db.commit()
+
+    return {
+        "message": "Recommendations generated successfully.", 
+        "recommendations": [
+            {
+                "intervention_id": r.intervention_id,
+                "rank": r.rank,
+                "rationale": r.rationale,
+                "source_citation": r.source_citation
+            } for r in new_recs
+        ]
+    }

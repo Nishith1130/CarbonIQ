@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = "mock-key"
     EMBEDDING_API_KEY: str = "mock-key"
     LLM_FALLBACK_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
 
     # CORS
     CORS_ORIGINS: str | list[str] = ["http://localhost:3000"]

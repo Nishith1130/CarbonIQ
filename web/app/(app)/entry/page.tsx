@@ -21,6 +21,9 @@ import {
   AlertCircle,
   Clock,
   ShieldCheck,
+  UploadCloud,
+  FileText as FileTextIcon,
+  Bot
 } from "lucide-react";
 
 function BillEntryContent() {
@@ -41,6 +44,11 @@ function BillEntryContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // AI Upload State
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const s = getSession();
@@ -157,6 +165,52 @@ function BillEntryContent() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAiLoading(true);
+    setAiError(null);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const result = await apiClient<any>("/uploads/bill", {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type header so the browser sets it with the correct boundary for multipart/form-data
+        headers: {}, 
+      });
+      
+      if (result.period_start) setPeriodStart(result.period_start);
+      if (result.period_end) setPeriodEnd(result.period_end);
+      
+      if (result.activities && result.activities.length > 0) {
+        setActivities(
+          result.activities.map((a: any) => ({
+            activity_type: a.canonical_field,
+            quantity: parseFloat(a.quantity) || 0,
+            unit: a.unit,
+            unit_process: null, // Let backend assign based on default sector split
+          }))
+        );
+      }
+      
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (err: any) {
+      if (err instanceof ApiError) {
+        setAiError(err.message);
+      } else {
+        setAiError("Failed to extract data from document using AI.");
+      }
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const getActivityIcon = (type: string) => {
     if (type.includes("electric")) return <Zap className="w-4 h-4 text-electric-blue" />;
     if (type.includes("coal") || type.includes("biomass") || type.includes("gas"))
@@ -212,6 +266,53 @@ function BillEntryContent() {
             <span>Load Surat Textile Mill Demo</span>
           </button>
         </div>
+      </div>
+
+      {/* AI Auto-Fill Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="text-[15px] font-semibold text-gray-900 flex items-center gap-2">
+              <Bot className="w-5 h-5 text-blue-600" />
+              AI Magic Auto-Fill
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Upload your utility bill (PDF/Image) or paste text. Our AI will automatically extract and populate the form below.
+            </p>
+          </div>
+          <div className="flex-shrink-0 relative">
+             <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              accept="application/pdf,image/*"
+            />
+            <button
+              type="button"
+              disabled={aiLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-blue-200 hover:border-blue-300 text-blue-700 text-sm font-semibold shadow-sm transition-all disabled:opacity-50"
+            >
+              {aiLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Extracting...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Upload Bill</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+        {aiError && (
+          <div className="mt-3 text-xs text-red-600 font-medium flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4" />
+            {aiError}
+          </div>
+        )}
       </div>
 
       {error && (
