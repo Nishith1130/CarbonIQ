@@ -21,10 +21,10 @@ const COLORS = [
 ];
 
 export function ScopeBreakdownPie({ totals }: ScopeBreakdownPieProps) {
-  const totalVal = Number(totals.total) || 0.001;
-  const s1 = Number(totals.scope1) || 0;
-  const s2 = Number(totals.scope2) || 0;
-  const s3 = Number(totals.scope3_partial) || 0;
+  const totalVal = Number(totals?.total) || 0.001;
+  const s1 = Number(totals?.scope1) || 0;
+  const s2 = Number(totals?.scope2) || 0;
+  const s3 = Number(totals?.scope3_partial) || 0;
 
   const data = [
     { name: "Scope 1 (Direct Fuels)", value: s1, color: COLORS[0] },
@@ -74,7 +74,7 @@ export function ScopeBreakdownPie({ totals }: ScopeBreakdownPieProps) {
         {/* Center Label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-2xl font-semibold tracking-tight text-midnight font-mono">
-            {totals.total.toFixed(1)}
+            {totalVal.toFixed(1)}
           </span>
           <span className="text-[11px] font-medium text-fog uppercase tracking-wider">
             tCO₂e Total
