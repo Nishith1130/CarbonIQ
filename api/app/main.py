@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
-from app.routers import auth
+from app.routers import auth, orgs, runs, sectors
 
 settings = get_settings()
 
@@ -55,6 +55,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 # Routers
 app.include_router(auth.router)
+app.include_router(orgs.router)
+app.include_router(sectors.router)
+app.include_router(runs.router)
 
 
 @app.get("/")

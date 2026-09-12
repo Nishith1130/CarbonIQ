@@ -1,0 +1,123 @@
+{
+  "sector_id": "textile_dyeing",
+  "display_name": "Textile Dyeing",
+  "description": "Cotton / synthetic fabric wet processing units — knits or wovens. Typical Indian cluster: Tirupur (Tamil Nadu), Surat (Gujarat), Ludhiana (Punjab), Panipat (Haryana). Water and thermal-energy intensive; effluent treatment obligatory.",
+  "typical_scale": {
+    "employees_range": [15, 200],
+    "monthly_production_tonnes_range": [30, 500],
+    "annual_turnover_cr_range": [3, 50]
+  },
+  "unit_processes": [
+    {
+      "id": "pre_treatment",
+      "name": "Pre-treatment (Scouring, Bleaching, Desizing)",
+      "typical_thermal_share_pct": 15,
+      "typical_electric_share_pct": 8,
+      "typical_water_share_pct": 20,
+      "notes": "Uses hot water and alkaline chemistry to prepare fabric for dyeing."
+    },
+    {
+      "id": "dyeing_bath",
+      "name": "Dyeing (Jet / Jigger / Winch — bath heating)",
+      "typical_thermal_share_pct": 45,
+      "typical_electric_share_pct": 20,
+      "typical_water_share_pct": 50,
+      "notes": "Largest single thermal-energy user. Bath heated to 60-130 C depending on dye class."
+    },
+    {
+      "id": "washing_rinsing",
+      "name": "Washing and Rinsing",
+      "typical_thermal_share_pct": 10,
+      "typical_electric_share_pct": 12,
+      "typical_water_share_pct": 20
+    },
+    {
+      "id": "stenter_drying",
+      "name": "Drying and Curing (Stenter, Dryer)",
+      "typical_thermal_share_pct": 28,
+      "typical_electric_share_pct": 15,
+      "typical_water_share_pct": 0,
+      "notes": "Second-largest thermal user. Fabric passed through a heated chamber. Exhaust is a major recoverable-heat source."
+    },
+    {
+      "id": "finishing",
+      "name": "Finishing (Calendering, Printing, Coating)",
+      "typical_thermal_share_pct": 2,
+      "typical_electric_share_pct": 10,
+      "typical_water_share_pct": 5
+    },
+    {
+      "id": "etp_utilities",
+      "name": "Effluent Treatment Plant and Utilities (Compressed Air, Cooling, Lighting)",
+      "typical_thermal_share_pct": 0,
+      "typical_electric_share_pct": 35,
+      "typical_water_share_pct": 5,
+      "notes": "In ZLD-mandated clusters (Tirupur), ETP energy share is even higher due to RO stages."
+    }
+  ],
+  "activities_expected": [
+    {
+      "activity_type": "electricity_grid",
+      "unit": "kWh",
+      "period": "monthly",
+      "description": "From DISCOM electricity bill"
+    },
+    {
+      "activity_type": "coal_indian_bituminous",
+      "unit": "kg",
+      "period": "monthly",
+      "description": "Coal purchase for boiler (if applicable)"
+    },
+    {
+      "activity_type": "biomass_bagasse",
+      "unit": "kg",
+      "period": "monthly",
+      "description": "Biomass (bagasse / rice husk) purchase for boiler (if applicable)"
+    },
+    {
+      "activity_type": "diesel_hsd",
+      "unit": "litre",
+      "period": "monthly",
+      "description": "Diesel for DG set backup"
+    },
+    {
+      "activity_type": "purchased_cotton_yarn",
+      "unit": "tonne",
+      "period": "monthly",
+      "description": "Raw material purchased (Scope 3)"
+    },
+    {
+      "activity_type": "road_freight_medium_truck",
+      "unit": "tonne_km",
+      "period": "monthly",
+      "description": "Outbound logistics (Scope 3)"
+    },
+    {
+      "activity_type": "water_freshwater",
+      "unit": "kL",
+      "period": "monthly",
+      "description": "Freshwater withdrawal"
+    }
+  ],
+  "typical_hotspots_by_frequency": [
+    "dyeing_bath",
+    "stenter_drying",
+    "etp_utilities",
+    "pre_treatment"
+  ],
+  "applicable_regulations": [
+    "CBAM_potentially_via_cotton_export",
+    "BRSR_cascade_from_apparel_buyer",
+    "CCTS_textiles",
+    "ZLD_mandate_cluster_specific",
+    "ADEETIE_textile_sector"
+  ],
+  "sources": [
+    "BEE Perform Achieve Trade (PAT) sectoral document — Textiles",
+    "TIFAC Assessment of Carbon Impact at Tirupur cluster",
+    "CPCB Textile Effluent Treatment Manual",
+    "CITI (Confederation of Indian Textile Industry) energy benchmark studies",
+    "SITRA (South India Textile Research Association) energy audit reports"
+  ],
+  "notes_for_verification": "Ratios above are typical mid-range values from published Tirupur and Surat cluster studies. For a specific SME, ratios will vary by machinery mix (jet vs jigger), dye class, and boiler fuel. Team should verify against the specific BEE cluster audit report for the target region before demo day."
+}

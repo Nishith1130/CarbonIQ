@@ -1,0 +1,113 @@
+{
+  "sector_id": "foundry",
+  "display_name": "Ferrous Foundry",
+  "description": "Small and medium ferrous foundries producing grey iron / SG iron castings. Typical Indian clusters: Rajkot (Gujarat), Belgaum (Karnataka), Coimbatore (Tamil Nadu), Kolhapur (Maharashtra), Howrah (West Bengal), Batala (Punjab), Agra (Uttar Pradesh). Melting is the dominant energy consumer.",
+  "typical_scale": {
+    "employees_range": [20, 300],
+    "monthly_production_tonnes_range": [50, 800],
+    "annual_turnover_cr_range": [5, 80]
+  },
+  "unit_processes": [
+    {
+      "id": "melting",
+      "name": "Melting (Cupola / Induction Furnace / Rotary)",
+      "typical_thermal_share_pct": 70,
+      "typical_electric_share_pct": 55,
+      "notes": "Dominant energy user. Cupola uses coke; induction uses electricity. Fuel mix depends on furnace technology."
+    },
+    {
+      "id": "molding",
+      "name": "Molding and Core Making",
+      "typical_thermal_share_pct": 3,
+      "typical_electric_share_pct": 10,
+      "notes": "Sand mixing, muller operation, core baking (small ovens)."
+    },
+    {
+      "id": "pouring_casting",
+      "name": "Pouring and Casting",
+      "typical_thermal_share_pct": 2,
+      "typical_electric_share_pct": 3,
+      "notes": "Ladle heating, transport of molten metal."
+    },
+    {
+      "id": "cleaning_fettling",
+      "name": "Cleaning, Fettling and Finishing",
+      "typical_thermal_share_pct": 0,
+      "typical_electric_share_pct": 12,
+      "notes": "Shot blasting, grinding, cutting."
+    },
+    {
+      "id": "heat_treatment",
+      "name": "Heat Treatment (Annealing, Normalizing)",
+      "typical_thermal_share_pct": 20,
+      "typical_electric_share_pct": 5,
+      "notes": "Not applicable to all foundries. Typical for machine-building supply castings."
+    },
+    {
+      "id": "utilities",
+      "name": "Utilities (Compressed Air, Fume Extraction, Lighting)",
+      "typical_thermal_share_pct": 5,
+      "typical_electric_share_pct": 15,
+      "notes": "Blowers for cupola and fume extraction are major electric loads."
+    }
+  ],
+  "activities_expected": [
+    {
+      "activity_type": "electricity_grid",
+      "unit": "kWh",
+      "period": "monthly",
+      "description": "From DISCOM electricity bill (major cost for induction-based foundries)"
+    },
+    {
+      "activity_type": "coal_indian_bituminous",
+      "unit": "kg",
+      "period": "monthly",
+      "description": "Coke for cupola (if applicable) — record as coal-equivalent"
+    },
+    {
+      "activity_type": "natural_gas_indian_grid",
+      "unit": "Nm3",
+      "period": "monthly",
+      "description": "Natural gas for heat treatment furnaces (if applicable)"
+    },
+    {
+      "activity_type": "diesel_hsd",
+      "unit": "litre",
+      "period": "monthly",
+      "description": "Diesel for DG set backup and forklift"
+    },
+    {
+      "activity_type": "purchased_steel_scrap",
+      "unit": "tonne",
+      "period": "monthly",
+      "description": "Scrap steel purchased as raw material (Scope 3)"
+    },
+    {
+      "activity_type": "road_freight_medium_truck",
+      "unit": "tonne_km",
+      "period": "monthly",
+      "description": "Inbound scrap logistics and outbound castings (Scope 3)"
+    }
+  ],
+  "typical_hotspots_by_frequency": [
+    "melting",
+    "heat_treatment",
+    "utilities",
+    "molding"
+  ],
+  "applicable_regulations": [
+    "CBAM_direct_via_iron_and_steel",
+    "CCTS_iron_and_steel_indirect",
+    "BRSR_cascade_from_auto_or_machinery_buyer",
+    "ADEETIE_foundry_sector",
+    "CPCB_air_emissions_standards"
+  ],
+  "sources": [
+    "BEE Foundry Cluster Energy Efficiency Programme",
+    "The Institute of Indian Foundrymen (IIF) energy benchmark studies",
+    "GIZ Foundry Sector Assessment 2019",
+    "TERI Foundry Energy Efficiency Reports",
+    "Batala, Belgaum and Rajkot cluster audit reports (BEE / UNIDO)"
+  ],
+  "notes_for_verification": "Ratios above assume a mid-sized cupola or induction foundry. Cupola-only foundries have higher thermal share; all-induction foundries have higher electric share. Team should specify furnace type in the entry form (extension for Phase 2). Verify hotspot ratios against BEE Batala or Rajkot cluster audit reports."
+}

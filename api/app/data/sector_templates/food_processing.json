@@ -1,0 +1,125 @@
+{
+  "sector_id": "food_processing",
+  "display_name": "Food Processing (Dairy / General)",
+  "description": "Small and medium food processing units — dairy products, ready-to-eat foods, fruit and vegetable processing, bakery, spices. Typical Indian clusters: Anand and Vadodara (Gujarat), Krishnagiri (Tamil Nadu), Solan (Himachal Pradesh), Kanpur (Uttar Pradesh). Refrigeration and steam are dominant energy consumers.",
+  "typical_scale": {
+    "employees_range": [15, 250],
+    "monthly_production_tonnes_range": [20, 400],
+    "annual_turnover_cr_range": [3, 60]
+  },
+  "unit_processes": [
+    {
+      "id": "refrigeration_cold_storage",
+      "name": "Refrigeration and Cold Storage",
+      "typical_thermal_share_pct": 0,
+      "typical_electric_share_pct": 40,
+      "notes": "Dominant electricity consumer. Includes chillers, cold rooms, blast freezers, chilled water loops. Ammonia or HFC refrigerants."
+    },
+    {
+      "id": "steam_boiler",
+      "name": "Steam Generation (Boiler for Pasteurization, Cleaning, Cooking)",
+      "typical_thermal_share_pct": 60,
+      "typical_electric_share_pct": 5,
+      "notes": "Dominant thermal-energy user. Fuel is typically diesel, LPG, briquettes or biomass depending on scale."
+    },
+    {
+      "id": "processing",
+      "name": "Processing (Mixing, Pasteurization, Homogenization, Cooking)",
+      "typical_thermal_share_pct": 15,
+      "typical_electric_share_pct": 15,
+      "notes": "Direct process heat delivered from boiler; motors for mixing and pumping."
+    },
+    {
+      "id": "cip_cleaning",
+      "name": "Cleaning-in-Place (CIP) and Sanitation",
+      "typical_thermal_share_pct": 15,
+      "typical_electric_share_pct": 8,
+      "notes": "Hot water and steam for washing tanks and lines between batches. Water-intensive."
+    },
+    {
+      "id": "packaging",
+      "name": "Packaging (Filling, Sealing, Labelling)",
+      "typical_thermal_share_pct": 5,
+      "typical_electric_share_pct": 12,
+      "notes": "Motors and compressors for filling machines; small heat sealers."
+    },
+    {
+      "id": "utilities",
+      "name": "Utilities (Compressed Air, Lighting, HVAC)",
+      "typical_thermal_share_pct": 5,
+      "typical_electric_share_pct": 20,
+      "notes": "Compressed air is often significant; production floors need bright, cool ambient conditions."
+    }
+  ],
+  "activities_expected": [
+    {
+      "activity_type": "electricity_grid",
+      "unit": "kWh",
+      "period": "monthly",
+      "description": "From DISCOM electricity bill (dominant for refrigeration)"
+    },
+    {
+      "activity_type": "lpg_commercial",
+      "unit": "kg",
+      "period": "monthly",
+      "description": "LPG for boiler / kitchen (if applicable)"
+    },
+    {
+      "activity_type": "diesel_hsd",
+      "unit": "litre",
+      "period": "monthly",
+      "description": "Diesel for boiler / DG set backup"
+    },
+    {
+      "activity_type": "biomass_rice_husk",
+      "unit": "kg",
+      "period": "monthly",
+      "description": "Biomass briquettes for boiler (if applicable)"
+    },
+    {
+      "activity_type": "natural_gas_indian_grid",
+      "unit": "Nm3",
+      "period": "monthly",
+      "description": "Natural gas for boiler (if applicable)"
+    },
+    {
+      "activity_type": "refrigerant_r134a",
+      "unit": "kg",
+      "period": "annual",
+      "description": "Refrigerant top-up (leakage proxy)"
+    },
+    {
+      "activity_type": "road_freight_medium_truck",
+      "unit": "tonne_km",
+      "period": "monthly",
+      "description": "Refrigerated outbound logistics (Scope 3)"
+    },
+    {
+      "activity_type": "water_freshwater",
+      "unit": "kL",
+      "period": "monthly",
+      "description": "Freshwater withdrawal"
+    }
+  ],
+  "typical_hotspots_by_frequency": [
+    "refrigeration_cold_storage",
+    "steam_boiler",
+    "utilities",
+    "cip_cleaning"
+  ],
+  "applicable_regulations": [
+    "FSSAI_general_compliance",
+    "BRSR_cascade_from_FMCG_or_retail_buyer",
+    "ADEETIE_food_processing_sector",
+    "CPCB_wastewater_standards",
+    "Kigali_Amendment_refrigerant_transition"
+  ],
+  "sources": [
+    "BEE Food Processing Cluster Energy Efficiency Programme",
+    "Confederation of Indian Food Trade and Industry (CIFTI) benchmarks",
+    "Ministry of Food Processing Industries (MoFPI) reports",
+    "TERI Food Processing Sector Studies",
+    "NIFTEM (National Institute of Food Technology) technical reports"
+  ],
+  "notes_for_verification": "Ratios above are typical mid-range values for a small-to-medium dairy or ready-to-eat unit. Specific ratios vary widely by product mix (frozen goods raise refrigeration share; bakery raises steam share). Verify against BEE food processing cluster audit for the target unit's product mix."
+}
