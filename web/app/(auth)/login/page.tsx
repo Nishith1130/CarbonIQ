@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient, ApiError } from "@/lib/api-client";
-import { saveSession } from "@/lib/auth";
+import { saveSession, getSession } from "@/lib/auth";
 import { TokenResponse } from "@/lib/types";
 import { AlertCircle } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -15,6 +15,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (getSession()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

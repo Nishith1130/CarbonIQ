@@ -1,5 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { TokenResponse } from "@/lib/types";
 import {
   ArrowRight,
   BarChart3,
@@ -324,6 +328,14 @@ function StatsRow() {
 
 /* ─── Main page ─── */
 export default function HomePage() {
+  const [session, setSession] = useState<TokenResponse | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setSession(getSession());
+  }, []);
+
   return (
     <div className="min-h-screen bg-canvas text-charcoal font-sans selection:bg-electric-blue/10 selection:text-electric-blue">
       {/* ──── Navigation ──── */}
@@ -348,18 +360,29 @@ export default function HomePage() {
                 CarbonIQ disaggregates aggregate energy data into unit-process hotspots, builds Marginal Abatement Cost Curves, and generates audit-ready BRSR & CBAM disclosures — so your facility can cut emissions and win export contracts.
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/register"
-                  className="px-6 py-3 rounded-lg bg-electric-blue hover:bg-deep-sapphire text-canvas text-sm font-semibold transition-colors shadow-sm"
-                >
-                  Get Started Free
-                </Link>
-                <Link
-                  href="/login"
-                  className="px-6 py-3 rounded-lg bg-canvas border border-ash hover:border-charcoal text-charcoal text-sm font-semibold transition-colors"
-                >
-                  Sign In
-                </Link>
+                {mounted && session ? (
+                  <Link
+                    href="/dashboard"
+                    className="px-6 py-3 rounded-lg bg-electric-blue hover:bg-deep-sapphire text-canvas text-sm font-semibold transition-colors shadow-sm"
+                  >
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/register"
+                      className="px-6 py-3 rounded-lg bg-electric-blue hover:bg-deep-sapphire text-canvas text-sm font-semibold transition-colors shadow-sm"
+                    >
+                      Get Started Free
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="px-6 py-3 rounded-lg bg-canvas border border-ash hover:border-charcoal text-charcoal text-sm font-semibold transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 
@@ -728,19 +751,30 @@ export default function HomePage() {
             to future-proof operations and win global export contracts.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/register"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-canvas text-midnight text-base font-bold shadow-lg hover:bg-paper hover:-translate-y-0.5 transition-all duration-300"
-            >
-              Get Started for Free
-            </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-canvas/30 text-canvas/80 hover:text-canvas hover:border-canvas/60 text-base font-medium transition-all duration-300"
-            >
-              Sign In
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
+            {mounted && session ? (
+              <Link
+                href="/dashboard"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-canvas text-midnight text-base font-bold shadow-lg hover:bg-paper hover:-translate-y-0.5 transition-all duration-300"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-canvas text-midnight text-base font-bold shadow-lg hover:bg-paper hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  Get Started for Free
+                </Link>
+                <Link
+                  href="/login"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-canvas/30 text-canvas/80 hover:text-canvas hover:border-canvas/60 text-base font-medium transition-all duration-300"
+                >
+                  Sign In
+                  <ArrowUpRight className="w-4 h-4" />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
