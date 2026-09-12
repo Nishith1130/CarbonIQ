@@ -29,13 +29,19 @@ def get_jinja_env() -> Environment:
 
 
 def _render_with_weasyprint(html_content: str) -> bytes | None:
-    """Attempt to render HTML to PDF using WeasyPrint (requires native pango/cairo)."""
+    """Attempt to render HTML to PDF using WeasyPrint (requires native pango/cairo).
+
+    Any exception here (including NameError from broken native bindings on
+    Windows) triggers the ReportLab fallback rather than 500-ing the request.
+    """
     try:
         import weasyprint
 
         return weasyprint.HTML(string=html_content).write_pdf()
-    except (ImportError, OSError, RuntimeError) as exc:
-        logger.info(f"WeasyPrint unavailable or native libraries missing ({exc}), using ReportLab fallback.")
+    except Exception as exc:
+        logger.info(
+            f"WeasyPrint unavailable ({type(exc).__name__}: {exc}); using ReportLab fallback."
+        )
         return None
 
 
