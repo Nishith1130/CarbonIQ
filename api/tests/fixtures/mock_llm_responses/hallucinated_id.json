@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    {
+      "intervention_id": "made_up_intervention_id",
+      "rationale": "I invented this.",
+      "source_citation": "My imagination",
+      "rank": 1
+    }
+  ]
+}

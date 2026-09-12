@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
-from app.routers import auth, macc, orgs, reports, runs, sectors
+from app.routers import auth, macc, orgs, recommendations, reports, runs, sectors, upload
 
 settings = get_settings()
 
@@ -36,6 +36,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         content={
             "code": f"HTTP_{exc.status_code}",
             "message": exc.detail,
+            "detail": exc.detail,
             "details": getattr(exc, "details", None),
         },
         headers=getattr(exc, "headers", None),
@@ -61,7 +62,8 @@ app.include_router(sectors.router)
 app.include_router(runs.router)
 app.include_router(macc.router)
 app.include_router(reports.router)
-
+app.include_router(recommendations.router)
+app.include_router(upload.router)
 
 @app.get("/")
 def read_root():

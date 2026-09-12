@@ -65,41 +65,22 @@ def calculate_macc_for_run(run: Run, db: Session) -> MACCResponse:
     )
     recs = list(db.scalars(stmt).all())
 
-    # 2. If no recommendations exist, seed deterministic candidates from hotspots
+    # 2. If no recommendations exist, generate them via AI RAG Recommender
     if not recs:
+        from app.services.recommender import create_recommendations
+        
         hotspots_stmt = select(Hotspot).where(Hotspot.run_id == run.id).order_by(Hotspot.rank.asc())
         hotspots = list(db.scalars(hotspots_stmt).all())
 
-        sector_id = run.organization.sector_id if run.organization else "textile_dyeing"
-        seeded_recs = []
-        current_rank = 1
-        seen_intervention_ids = set()
-
         for h in hotspots:
-            candidates = library.find_candidates(sector_id=sector_id, process_id=h.unit_process)
-            if not candidates:
-                candidates = library.find_candidates(sector_id=sector_id)
+            try:
+                create_recommendations(db, run.id, h.id)
+            except Exception:
+                # Recommender has its own fallback, but we catch top-level errors just in case
+                pass
 
-            for cand in candidates[:2]:  # Top 2 per hotspot
-                if cand["id"] in seen_intervention_ids:
-                    continue
-                seen_intervention_ids.add(cand["id"])
-
-                rec = Recommendation(
-                    run_id=run.id,
-                    hotspot_id=h.id,
-                    intervention_id=cand["id"],
-                    rank=current_rank,
-                    rationale=cand.get("description", cand.get("name", "")),
-                    source_citation=cand.get("source_citation", "BEE Technology Bank"),
-                )
-                db.add(rec)
-                seeded_recs.append(rec)
-                current_rank += 1
-
-        db.flush()
-        # Re-fetch populated recommendations
-        recs = seeded_recs
+        # Re-fetch populated recommendations after AI generation
+        recs = list(db.scalars(stmt).all())
 
     # 3. Compute MACC metrics for each recommendation
     items: list[MACCItemResponse] = []

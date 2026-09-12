@@ -167,7 +167,7 @@ def upgrade() -> None:
         sa.Column("intervention_id", sa.String(length=100), nullable=False),
         sa.Column("sector_id", sa.String(length=100), nullable=False),
         sa.Column("applicable_process", sa.String(length=100), nullable=False),
-        sa.Column("vector", Vector(1536), nullable=True),
+        sa.Column("vector", Vector(768), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_intervention_embeddings_intervention_id"), "intervention_embeddings", ["intervention_id"], unique=True)

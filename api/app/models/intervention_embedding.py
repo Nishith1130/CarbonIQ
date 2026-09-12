@@ -14,4 +14,4 @@ class InterventionEmbedding(Base):
     intervention_id: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     sector_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
     applicable_process: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
-    vector: Mapped[list[float] | None] = mapped_column(Vector(1536), nullable=True)
+    vector: Mapped[list[float] | None] = mapped_column(Vector(3072), nullable=True)

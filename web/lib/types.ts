@@ -1,11 +1,11 @@
 export interface TokenResponse {
   access_token: string;
   token_type: string;
-  user_id: string;
-  org_id: string;
-  email: string;
-  org_name: string;
-  sector_id: string;
+  user_id?: string;
+  org_id?: string;
+  email?: string;
+  org_name?: string;
+  sector_id?: string;
 }
 
 export interface LoginRequest {
@@ -39,8 +39,10 @@ export interface Organization {
 }
 
 export interface Sector {
+  id?: string;
   sector_id: string;
-  name: string;
+  name?: string;
+  display_name?: string;
   description: string;
   typical_scale?: string;
   process_count?: number;
@@ -63,8 +65,9 @@ export interface ExpectedActivity {
 
 export interface SectorSchemaResponse {
   sector_id: string;
-  sector_name: string;
-  unit_processes: UnitProcess[];
+  sector_name?: string;
+  display_name?: string;
+  unit_processes?: UnitProcess[];
   activities_expected: ExpectedActivity[];
 }
 
@@ -102,6 +105,8 @@ export interface Hotspot {
   scope1?: number;
   scope2?: number;
   scope3_partial?: number;
+  is_estimated?: boolean;
+  data_source?: string;
 }
 
 export interface ProcessBaseline {
@@ -120,33 +125,46 @@ export interface RunResponse {
   sector_id: string;
   period_start?: string;
   period_end?: string;
-  ef_version: string;
+  ef_version?: string;
   totals: Totals;
   hotspots: Hotspot[];
   baseline_by_process?: ProcessBaseline[];
   line_items_count?: number;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface MACCItem {
-  recommendation_id: string;
+  id?: string;
+  recommendation_id?: string;
   intervention_id: string;
   intervention_name: string;
-  unit_process_id?: string;
+  unit_process_id?: string | null;
   cost_capex_inr: number;
   annual_saving_inr: number;
   tco2e_reduced_annual: number;
   cost_per_tco2e: number;
   payback_years: number;
-  circular_type?: string;
+  circular_type?: string | null;
   source_citation: string;
   rationale: string;
+  // Optional aliases for compatibility
+  title?: string;
+  description?: string;
+  capex?: number;
+  annual_opex_savings?: number;
+  annual_tco2e_savings?: number;
+  marginal_abatement_cost?: number;
+  roi_pct?: number;
+  implementation_time_months?: number;
+  difficulty_score?: number;
+  category?: string;
 }
 
 export interface MACCResponse {
   run_id: string;
-  total_interventions: number;
+  total_interventions?: number;
   items: MACCItem[];
+  macc_curve?: MACCItem[];
 }
 
 export interface ReportResponse {
@@ -156,5 +174,5 @@ export interface ReportResponse {
   download_url: string;
   file_size_bytes: number;
   generated_at: string;
+  summary?: string;
 }
-

@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    {
+      "intervention_id": "tx_waste_heat_recovery_stenter",
+      "rationale": "High impact for textile stenter drying.",
+      "source_citation": "BEE PAT",
+      "rank": 1
+    }
+  ]
+}

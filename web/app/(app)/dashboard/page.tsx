@@ -162,7 +162,7 @@ export default function FacilityHubPage() {
   const fyEnd = new Date(`${currentFy.endYear}-03-31`);
 
   const fyRuns = runs.filter((r) => {
-    const end = new Date(r.period_end || r.created_at);
+    const end = new Date(r.period_end || r.created_at || "");
     return end >= fyStart && end <= fyEnd;
   });
 
