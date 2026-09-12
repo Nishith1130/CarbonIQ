@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getSession, removeToken } from "@/lib/auth";
-import { TokenResponse } from "@/lib/types";
+import { TokenResponse, RunResponse } from "@/lib/types";
+import { apiClient } from "@/lib/api-client";
 
 interface AppHeaderProps {
   currentRunId?: string;
@@ -15,28 +16,71 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
   const router = useRouter();
   const [session, setSession] = useState<TokenResponse | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [latestRunId, setLatestRunId] = useState<string | null>(currentRunId || null);
 
   useEffect(() => {
     setMounted(true);
-    setSession(getSession());
-  }, []);
+    const s = getSession();
+    setSession(s);
+
+    if (s && !currentRunId) {
+      apiClient<RunResponse[]>("/runs")
+        .then((runs) => {
+          if (runs && runs.length > 0) {
+            setLatestRunId(runs[0].id);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentRunId]);
 
   const handleLogout = () => {
     removeToken();
     router.push("/login");
   };
 
+  const activeRunId = currentRunId || latestRunId;
+  const reportsHref = activeRunId ? `/dashboard/${activeRunId}/report` : "/dashboard";
+  const recommendationsHref = activeRunId ? `/dashboard/${activeRunId}/macc` : "/dashboard";
+
   const navLinks = session
     ? [
         { href: "/dashboard", label: "Dashboard" },
-        { href: "/entry", label: "New Entry" },
-        { href: "/onboarding", label: "Sectors" },
+        { href: "/entry", label: "Data Entry" },
+        { href: reportsHref, label: "Reports" },
+        { href: recommendationsHref, label: "Recommendations" },
+        { href: "/settings", label: "Settings" },
       ]
     : [
-        { href: "#", label: "Platform" },
+        { href: "/#platform", label: "Platform" },
         { href: "/onboarding", label: "Sectors" },
-        { href: "#", label: "Resources" },
+        { href: "/#methodology", label: "Resources" },
       ];
+
+  const isLinkActive = (href: string, label: string) => {
+    if (!session) return false;
+    if (label === "Dashboard") {
+      return (
+        pathname === "/dashboard" ||
+        (pathname.startsWith("/dashboard/") &&
+          !pathname.includes("/report") &&
+          !pathname.includes("/macc"))
+      );
+    }
+    if (label === "Data Entry") {
+      return pathname === "/entry";
+    }
+    if (label === "Reports") {
+      return pathname.includes("/report");
+    }
+    if (label === "Recommendations") {
+      return pathname.includes("/macc");
+    }
+    if (label === "Settings") {
+      return pathname === "/settings" || pathname === "/onboarding";
+    }
+    return pathname === href;
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
@@ -55,16 +99,23 @@ export function AppHeader({ currentRunId }: AppHeaderProps) {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-[15px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-2 lg:gap-3">
+            {navLinks.map((link) => {
+              const active = isLinkActive(link.href, link.label);
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`text-[14px] lg:text-[15px] px-3 py-1.5 rounded-lg transition-colors ${
+                    active
+                      ? "text-[#2563EB] bg-blue-50/80 font-semibold"
+                      : "text-gray-600 hover:text-gray-900 font-medium hover:bg-gray-50"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
