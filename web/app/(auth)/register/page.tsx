@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient, ApiError } from "@/lib/api-client";
-import { saveSession } from "@/lib/auth";
+import { saveSession, getSession } from "@/lib/auth";
 import { TokenResponse } from "@/lib/types";
 import {
   AlertCircle,
@@ -49,6 +49,11 @@ export default function RegisterPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (getSession()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
   // Close dropdown on click outside or Escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
