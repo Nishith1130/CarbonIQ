@@ -2,7 +2,7 @@
 
 import React from "react";
 import { MACCItem } from "@/lib/types";
-import { TrendingDown, IndianRupee, Clock, BookOpen, CheckCircle2 } from "lucide-react";
+import { TrendingDown, IndianRupee, Clock, BookOpen, CheckCircle2, Sparkles } from "lucide-react";
 
 interface InterventionCardProps {
   item: MACCItem;
@@ -46,6 +46,14 @@ export function InterventionCard({ item, rank }: InterventionCardProps) {
           </span>
         </div>
       </div>
+
+      {/* AI-generated rationale indicator */}
+      {item.rationale && !item.rationale.includes("unavailable") && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-blue-600 mb-1">
+          <Sparkles className="w-2.5 h-2.5" />
+          AI-generated rationale · cited from library
+        </span>
+      )}
 
       {/* Rationale text */}
       <p className="text-xs text-steel leading-relaxed mb-4">

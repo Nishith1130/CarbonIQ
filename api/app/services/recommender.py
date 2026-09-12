@@ -20,6 +20,15 @@ def create_recommendations(
     run_id: uuid.UUID,
     hotspot_id: uuid.UUID,
 ) -> list[dict[str, Any]]:
+    # 0. Idempotency guard — prevent duplicate recommendations from race conditions
+    existing = db.query(Recommendation).filter(
+        Recommendation.run_id == run_id,
+        Recommendation.hotspot_id == hotspot_id,
+    ).first()
+    if existing:
+        logger.info(f"Recommendations already exist for hotspot {hotspot_id}, skipping.")
+        return []
+
     # 1. Fetch Hotspot and Run Context
     hotspot = db.query(Hotspot).filter(Hotspot.id == hotspot_id, Hotspot.run_id == run_id).first()
     if not hotspot:

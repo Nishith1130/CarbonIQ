@@ -1,16 +1,21 @@
+import logging
 import uuid
 from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.db.session import SessionLocal
 from app.deps import get_current_org, get_current_user, get_db
 from app.models import ActivityData, BaselineResult, Hotspot, Organization, Run, User
 from app.schemas.runs import CreateRunRequest, HotspotResponse, RunResponse, TotalsSchema
 from app.services.baseline import get_baseline_engine
 from app.services.hotspot import HotspotRanker
+from app.services.recommender import create_recommendations
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/runs", tags=["Runs & Calculations"])
 
@@ -18,6 +23,7 @@ router = APIRouter(prefix="/runs", tags=["Runs & Calculations"])
 @router.post("", response_model=RunResponse, status_code=status.HTTP_201_CREATED)
 def create_run(
     data: CreateRunRequest,
+    background_tasks: BackgroundTasks,
     current_user: Annotated[User, Depends(get_current_user)],
     current_org: Annotated[Organization, Depends(get_current_org)],
     db: Annotated[Session, Depends(get_db)],
@@ -118,6 +124,14 @@ def create_run(
 
     db.commit()
     db.refresh(run)
+
+    # Schedule background recommendation generation for each hotspot
+    for h_obj in db_hotspots:
+        background_tasks.add_task(
+            _safe_create_recommendations,
+            run_id=run.id,
+            hotspot_id=h_obj.id,
+        )
 
     # Format response
     hotspot_responses = [
@@ -303,3 +317,18 @@ def list_runs(
             )
         )
     return responses
+
+
+def _safe_create_recommendations(run_id: uuid.UUID, hotspot_id: uuid.UUID) -> None:
+    """
+    Background task: generate recommendations for a single hotspot.
+    Uses its own DB session so a Gemini timeout cannot fail the run itself.
+    """
+    db = SessionLocal()
+    try:
+        create_recommendations(db, run_id, hotspot_id)
+        logger.info(f"Background recommendations generated for hotspot {hotspot_id}")
+    except Exception as e:
+        logger.warning(f"Background recommendation for hotspot {hotspot_id} failed: {e}")
+    finally:
+        db.close()
