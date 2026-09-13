@@ -19,6 +19,8 @@ import {
   BarChart3,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Star,
   CheckCircle2,
   MinusCircle,
@@ -28,23 +30,38 @@ import {
 type StatusMap = Record<string, InterventionStatus>;
 type Phase = "triage" | "results";
 
-function loadStatuses(orgId: string | null): StatusMap {
-  if (!orgId || typeof window === "undefined") return {};
+function loadStatuses(runId: string | null, orgId: string | null): StatusMap {
+  if (typeof window === "undefined") return {};
   try {
-    const raw = window.localStorage.getItem(`carboniq_intervention_status:${orgId}`);
-    return raw ? (JSON.parse(raw) as StatusMap) : {};
+    if (runId) {
+      const runRaw = window.localStorage.getItem(`carboniq_intervention_status:${runId}`);
+      if (runRaw) return JSON.parse(runRaw) as StatusMap;
+    }
+    if (orgId) {
+      const orgRaw = window.localStorage.getItem(`carboniq_intervention_status:${orgId}`);
+      if (orgRaw) return JSON.parse(orgRaw) as StatusMap;
+    }
+    return {};
   } catch {
     return {};
   }
 }
 
-function saveStatuses(orgId: string | null, map: StatusMap) {
-  if (!orgId || typeof window === "undefined") return;
+function saveStatuses(runId: string | null, orgId: string | null, map: StatusMap) {
+  if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(
-      `carboniq_intervention_status:${orgId}`,
-      JSON.stringify(map)
-    );
+    if (runId) {
+      window.localStorage.setItem(
+        `carboniq_intervention_status:${runId}`,
+        JSON.stringify(map)
+      );
+    }
+    if (orgId) {
+      window.localStorage.setItem(
+        `carboniq_intervention_status:${orgId}`,
+        JSON.stringify(map)
+      );
+    }
   } catch {
     /* ignore quota */
   }
@@ -62,7 +79,8 @@ export default function MACCPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [statuses, setStatuses] = useState<StatusMap>({});
-  const [phase, setPhase] = useState<Phase>("triage");
+  const [isGenerated, setIsGenerated] = useState<boolean>(!isFresh);
+  const [phase, setPhase] = useState<Phase>(!isFresh ? "results" : "triage");
   const [deferredExpanded, setDeferredExpanded] = useState(false);
 
   useEffect(() => {
@@ -70,10 +88,20 @@ export default function MACCPage() {
   }, []);
 
   useEffect(() => {
-    if (session?.org_id) {
-      setStatuses(loadStatuses(session.org_id));
+    if (!runId) return;
+    const key = `carboniq_macc_generated:${runId}`;
+    const alreadyGenerated = window.localStorage.getItem(key) === "true";
+    if (alreadyGenerated || !isFresh) {
+      setIsGenerated(true);
+      setPhase("results");
     }
-  }, [session?.org_id]);
+  }, [runId, isFresh]);
+
+  useEffect(() => {
+    if (session?.org_id || runId) {
+      setStatuses(loadStatuses(runId, session?.org_id || null));
+    }
+  }, [session?.org_id, runId]);
 
   useEffect(() => {
     if (!runId) return;
@@ -94,16 +122,25 @@ export default function MACCPage() {
 
   const handleStatusChange = useCallback(
     (interventionId: string, next: InterventionStatus | null) => {
+      if (isGenerated) return;
       setStatuses((prev) => {
         const copy = { ...prev };
         if (next === null) delete copy[interventionId];
         else copy[interventionId] = next;
-        saveStatuses(session?.org_id || null, copy);
+        saveStatuses(runId, session?.org_id || null, copy);
         return copy;
       });
     },
-    [session?.org_id]
+    [isGenerated, runId, session?.org_id]
   );
+
+  const handleCompute = useCallback(() => {
+    if (typeof window !== "undefined" && runId) {
+      window.localStorage.setItem(`carboniq_macc_generated:${runId}`, "true");
+    }
+    setIsGenerated(true);
+    setPhase("results");
+  }, [runId]);
 
   const items = macc?.items || [];
 
@@ -211,7 +248,7 @@ export default function MACCPage() {
       {/* ─────────────────────────────────────────────────────────── */}
       {/* PHASE 1: TRIAGE — titles only, tag each                    */}
       {/* ─────────────────────────────────────────────────────────── */}
-      {phase === "triage" && (
+      {phase === "triage" && !isGenerated && (
         <TriageView
           items={items}
           statuses={statuses}
@@ -220,22 +257,23 @@ export default function MACCPage() {
           taggedCount={taggedCount}
           interestedCount={interestedCount}
           untaggedCount={untaggedCount}
-          onCompute={() => setPhase("results")}
+          onCompute={handleCompute}
         />
       )}
 
       {/* ─────────────────────────────────────────────────────────── */}
       {/* PHASE 2: RESULTS — chart, KPIs, detailed cards              */}
       {/* ─────────────────────────────────────────────────────────── */}
-      {phase === "results" && (
+      {(phase === "results" || isGenerated) && (
         <ResultsView
           activeItems={activeItems}
           deferredItems={deferredItems}
           statuses={statuses}
-          onStatusChange={handleStatusChange}
+          onStatusChange={isGenerated ? undefined : handleStatusChange}
           deferredExpanded={deferredExpanded}
           setDeferredExpanded={setDeferredExpanded}
-          onBackToTriage={() => setPhase("triage")}
+          onBackToTriage={isGenerated ? undefined : () => setPhase("triage")}
+          isGenerated={isGenerated}
         />
       )}
     </div>
@@ -267,6 +305,14 @@ function TriageView({
   untaggedCount,
   onCompute,
 }: TriageViewProps) {
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 3;
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const pageEnd = pageStart + PAGE_SIZE;
+  const pagedItems = items.slice(pageStart, pageEnd);
+
   const canProceed = taggedCount > 0;
 
   return (
@@ -324,36 +370,61 @@ function TriageView({
         </button>
       </div>
 
-      {/* Title-only list */}
+      {/* Title-only list (3 items per page) */}
       <div className="space-y-2">
-        {items.map((item, idx) => (
+        {pagedItems.map((item, idx) => (
           <TriageRow
-            key={item.intervention_id || idx}
+            key={item.intervention_id || (pageStart + idx)}
             item={item}
-            rank={idx + 1}
+            rank={pageStart + idx + 1}
             status={statuses[item.intervention_id] || null}
             onStatusChange={onStatusChange}
           />
         ))}
       </div>
 
-      {/* Sticky bottom CTA (mobile-friendly) */}
-      <div className="sticky bottom-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-canvas/80 backdrop-blur border-t border-ash flex items-center justify-between gap-3">
-        <span className="text-[11px] text-fog">
-          {canProceed
-            ? "Tag more items or continue with what you've marked so far."
-            : "Tag at least one intervention to see your savings plan."}
-        </span>
-        <button
-          type="button"
-          onClick={onCompute}
-          disabled={!canProceed}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-midnight hover:bg-charcoal text-canvas text-[13px] font-semibold shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
-        >
-          Compute savings plan
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100 mt-3">
+          <div className="text-xs text-gray-500 tabular-nums">
+            Showing{" "}
+            <span className="font-semibold text-gray-800">
+              {pageStart + 1}–{Math.min(pageEnd, items.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold text-gray-800">
+              {items.length}
+            </span>{" "}
+            recommendations
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-[13px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Previous</span>
+            </button>
+
+            <span className="px-3 py-1.5 text-[13px] font-semibold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 tabular-nums">
+              Page {safePage} of {totalPages}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-[13px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -467,10 +538,11 @@ interface ResultsViewProps {
   activeItems: MACCItem[];
   deferredItems: MACCItem[];
   statuses: StatusMap;
-  onStatusChange: (id: string, next: InterventionStatus | null) => void;
+  onStatusChange?: (id: string, next: InterventionStatus | null) => void;
   deferredExpanded: boolean;
   setDeferredExpanded: (b: boolean) => void;
-  onBackToTriage: () => void;
+  onBackToTriage?: () => void;
+  isGenerated?: boolean;
 }
 
 function ResultsView({
@@ -481,6 +553,7 @@ function ResultsView({
   deferredExpanded,
   setDeferredExpanded,
   onBackToTriage,
+  isGenerated = false,
 }: ResultsViewProps) {
   // Sort state for live interventions
   const [sortType, setSortType] = React.useState<"roi" | "impact" | "payback">("roi");
@@ -518,16 +591,23 @@ function ResultsView({
 
   return (
     <>
-      {/* Return to triage */}
+      {/* Return to triage or Finalized Status */}
       <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={onBackToTriage}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-steel hover:text-midnight transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to tagging
-        </button>
+        {!isGenerated && onBackToTriage ? (
+          <button
+            type="button"
+            onClick={onBackToTriage}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-steel hover:text-midnight transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to tagging
+          </button>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>MACC Savings Plan Finalized</span>
+          </div>
+        )}
         <span className="text-[11px] text-fog font-mono">
           Personalised for your tagged interventions
         </span>
