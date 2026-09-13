@@ -48,12 +48,14 @@ def get_recommendations(
     """
     client = _get_client()
 
-    candidates_json = json.dumps(candidates, indent=2)
+    candidates_json = json.dumps(candidates, indent=2, sort_keys=True)
+    # Round to 1 decimal — coarse enough to absorb float-drift across runs
+    # so the LLM sees an identical prompt for identical inputs.
     prompt = USER_PROMPT_TEMPLATE.format(
         sector=sector,
         unit_process=unit_process,
-        magnitude=round(magnitude, 2),
-        share_pct=round(share_pct, 2),
+        magnitude=f"{round(float(magnitude), 1):.1f}",
+        share_pct=f"{round(float(share_pct), 1):.1f}",
         candidates_json=candidates_json,
         is_estimated=is_estimated,
         data_source=data_source,
@@ -70,7 +72,8 @@ def get_recommendations(
                     system_instruction=SYSTEM_PROMPT,
                     response_mime_type="application/json",
                     response_schema=RecommendationOutput,
-                    temperature=0.2,
+                    temperature=0,
+                    top_p=1,
                 ),
             )
 

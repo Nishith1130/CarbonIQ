@@ -79,6 +79,12 @@ export interface ActivityInput {
   month?: number | null;
 }
 
+export interface ProcessOverride {
+  unit_process_id: string;
+  electric_share_pct: number;
+  thermal_share_pct: number;
+}
+
 export interface CreateRunRequest {
   org_id?: string | null;
   sector_id?: string | null;
@@ -86,6 +92,7 @@ export interface CreateRunRequest {
   period_end?: string | null;
   region?: string | null;
   activities: ActivityInput[];
+  process_overrides?: ProcessOverride[] | null;
 }
 
 export interface Totals {

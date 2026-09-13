@@ -14,6 +14,13 @@ class ActivityDataInput(BaseModel):
     month: int | None = Field(None, ge=1, le=12, description="Month of bill (1-12)")
 
 
+class ProcessOverride(BaseModel):
+    """User-adjusted energy share for a specific unit process (Option 2)."""
+    unit_process_id: str = Field(..., description="Unit process ID from the sector template, e.g. 'dyeing_bath'")
+    electric_share_pct: float = Field(ge=0, le=100, description="User-adjusted electrical energy share percentage")
+    thermal_share_pct: float = Field(ge=0, le=100, description="User-adjusted thermal energy share percentage")
+
+
 class CreateRunRequest(BaseModel):
     org_id: uuid.UUID | None = Field(None, description="Target organization ID. Defaults to current user's org.")
     sector_id: str | None = Field(None, description="Sector template. Defaults to organization's sector.")
@@ -21,6 +28,10 @@ class CreateRunRequest(BaseModel):
     period_end: date | None = Field(None, description="Billing period end date")
     region: str | None = Field("IN_all_india", description="Grid region for CEA factor")
     activities: list[ActivityDataInput] = Field(..., min_length=1, description="List of entered bills / activity items")
+    process_overrides: list[ProcessOverride] | None = Field(
+        None,
+        description="Optional user-adjusted energy shares per unit process. If provided, these override the sector template benchmark percentages (Option 2).",
+    )
 
 
 class TotalsSchema(BaseModel):
