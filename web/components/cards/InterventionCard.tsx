@@ -89,15 +89,17 @@ export function InterventionCard({
             {Number(item.tco2e_reduced_annual).toFixed(1)} tCO₂e/yr
           </span>
         </div>
-        <button
-          type="button"
-          onClick={clearStatus}
-          className="inline-flex items-center gap-1 text-[10px] font-medium text-steel hover:text-midnight px-2 py-1 rounded hover:bg-canvas transition-colors flex-shrink-0"
-          title="Restore to Interested"
-        >
-          <RotateCcw className="w-3 h-3" />
-          Restore
-        </button>
+        {onStatusChange && (
+          <button
+            type="button"
+            onClick={clearStatus}
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-steel hover:text-midnight px-2 py-1 rounded hover:bg-canvas transition-colors flex-shrink-0"
+            title="Restore to Interested"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Restore
+          </button>
+        )}
       </div>
     );
   }
@@ -196,7 +198,7 @@ export function InterventionCard({
           </span>
         </div>
 
-        {onStatusChange && (
+        {onStatusChange ? (
           <div className="flex items-center gap-1 flex-shrink-0">
             <span className="text-[10px] font-semibold text-fog uppercase tracking-wider mr-1 hidden sm:inline">
               Your call:
@@ -223,6 +225,17 @@ export function InterventionCard({
               onClick={() => setStatus("not_applicable")}
             />
           </div>
+        ) : (
+          status && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_META[status].chipCls}`}
+              >
+                {React.createElement(STATUS_META[status].icon, { className: "w-2.5 h-2.5" })}
+                {STATUS_META[status].label}
+              </span>
+            </div>
+          )
         )}
       </div>
     </div>

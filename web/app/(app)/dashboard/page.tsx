@@ -257,7 +257,7 @@ export default function FacilityHubPage() {
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[15px] font-semibold transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
-            <span>+ Log First Month&apos;s Data</span>
+            <span>Log First Month&apos;s Data</span>
           </Link>
         </div>
       ) : (
