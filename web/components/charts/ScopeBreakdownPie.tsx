@@ -50,7 +50,7 @@ export function ScopeBreakdownPie({ totals }: ScopeBreakdownPieProps) {
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="relative w-full h-[220px]">
+      <div className="relative w-full h-[180px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

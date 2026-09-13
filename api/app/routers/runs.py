@@ -44,10 +44,12 @@ def create_run(
     # 1. Run deterministic baseline calculation
     engine = get_baseline_engine()
     raw_activities = [act.model_dump() for act in data.activities]
+    raw_overrides = [ov.model_dump() for ov in data.process_overrides] if data.process_overrides else None
     baseline_calc = engine.calculate(
         sector_id=sector_id,
         activities=raw_activities,
         region=data.region or "IN_all_india",
+        process_overrides=raw_overrides,
     )
 
     # 2. Run Pareto hotspot detection

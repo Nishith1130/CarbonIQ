@@ -16,6 +16,7 @@ import {
   ActivityInput,
   RunResponse,
   TokenResponse,
+  ProcessOverride,
 } from "@/lib/types";
 import {
   Plus,
@@ -30,7 +31,10 @@ import {
   ClipboardList,
   Sparkles,
   ChevronDown,
+  ChevronUp,
   Check,
+  Sliders,
+  RotateCcw,
 } from "lucide-react";
 
 /* -------------------------------------------------------------------------- */
@@ -114,6 +118,12 @@ function BillEntryContent() {
   const [parseWarnings, setParseWarnings] = useState<string[]>([]);
   const [parseSuccess, setParseSuccess] = useState(false);
 
+  // --- Option 2: Process energy breakdown overrides ---
+  const [overridesOpen, setOverridesOpen] = useState(false);
+  const [overridesEnabled, setOverridesEnabled] = useState(false);
+  const [electricOverrides, setElectricOverrides] = useState<Record<string, number>>({});
+  const [thermalOverrides, setThermalOverrides] = useState<Record<string, number>>({});
+
   // Common
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -129,6 +139,17 @@ function BillEntryContent() {
     apiClient<SectorSchemaResponse>(`/sectors/${querySector}/schema`)
       .then((data) => {
         setSchema(data);
+        // Initialize overrides from sector template defaults
+        if (data?.unit_processes) {
+          const elec: Record<string, number> = {};
+          const therm: Record<string, number> = {};
+          for (const p of data.unit_processes) {
+            elec[p.id] = p.typical_electric_share_pct ?? 0;
+            therm[p.id] = p.typical_thermal_share_pct ?? 0;
+          }
+          setElectricOverrides(elec);
+          setThermalOverrides(therm);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -279,6 +300,41 @@ function BillEntryContent() {
     }
   };
 
+  // ── Option 2: Override helpers ─────────────────────────────────────────
+  const unitProcesses = schema?.unit_processes || [];
+
+  const electricTotal = useMemo(
+    () => Object.values(electricOverrides).reduce((s, v) => s + v, 0),
+    [electricOverrides]
+  );
+  const thermalTotal = useMemo(
+    () => Object.values(thermalOverrides).reduce((s, v) => s + v, 0),
+    [thermalOverrides]
+  );
+
+  const handleElectricSlider = (pid: string, val: number) => {
+    setElectricOverrides((prev) => ({ ...prev, [pid]: val }));
+    if (!overridesEnabled) setOverridesEnabled(true);
+  };
+  const handleThermalSlider = (pid: string, val: number) => {
+    setThermalOverrides((prev) => ({ ...prev, [pid]: val }));
+    if (!overridesEnabled) setOverridesEnabled(true);
+  };
+
+  const resetOverridesToDefaults = () => {
+    if (schema?.unit_processes) {
+      const elec: Record<string, number> = {};
+      const therm: Record<string, number> = {};
+      for (const p of schema.unit_processes) {
+        elec[p.id] = p.typical_electric_share_pct ?? 0;
+        therm[p.id] = p.typical_thermal_share_pct ?? 0;
+      }
+      setElectricOverrides(elec);
+      setThermalOverrides(therm);
+    }
+    setOverridesEnabled(false);
+  };
+
   // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,6 +344,16 @@ function BillEntryContent() {
     if (validActivities.length === 0) {
       setError("Please enter at least one utility bill quantity greater than zero.");
       return;
+    }
+
+    // Build process_overrides payload if user adjusted sliders
+    let processOverrides: ProcessOverride[] | null = null;
+    if (overridesEnabled && unitProcesses.length > 0) {
+      processOverrides = unitProcesses.map((p) => ({
+        unit_process_id: p.id,
+        electric_share_pct: electricOverrides[p.id] ?? 0,
+        thermal_share_pct: thermalOverrides[p.id] ?? 0,
+      }));
     }
 
     setSubmitting(true);
@@ -301,9 +367,10 @@ function BillEntryContent() {
           period_end: periodEnd,
           region: "IN_all_india",
           activities: validActivities,
+          process_overrides: processOverrides,
         }),
       });
-      router.push(`/dashboard/${result.id}`);
+      router.push(`/dashboard/${result.id}?fresh=1`);
     } catch (err: any) {
       setError(
         err instanceof ApiError
@@ -677,6 +744,174 @@ function BillEntryContent() {
               )}
             </div>
           </div>
+
+          {/* ── OPTION 2: CUSTOMISE ENERGY BREAKDOWN PANEL ───────────── */}
+          {unitProcesses.length > 0 && (
+            <div className="border border-gray-200 rounded-xl overflow-hidden transition-all">
+              {/* Panel Header — toggle */}
+              <button
+                type="button"
+                onClick={() => setOverridesOpen((s) => !s)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-3.5 bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-100">
+                    <Sliders className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-[13px] font-semibold text-gray-900 block">
+                      Customise Process Energy Shares
+                    </span>
+                    <span className="text-[11px] text-gray-500">
+                      {overridesEnabled
+                        ? "Using your custom breakdown"
+                        : "Using BEE sector-template defaults"}
+                    </span>
+                  </div>
+                  {overridesEnabled && (
+                    <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">
+                      Custom
+                    </span>
+                  )}
+                </div>
+                {overridesOpen ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+
+              {/* Panel Body — sliders */}
+              {overridesOpen && (
+                <div className="px-5 pb-5 pt-2 space-y-5 border-t border-gray-100">
+                  <p className="text-[11px] text-gray-500">
+                    Adjust how your total electricity and fuel consumption is split across factory processes.
+                    Shares should sum to 100%. If you don't know, leave the defaults.
+                  </p>
+
+                  {/* Electrical Shares */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-blue-500" />
+                        Electrical Energy Shares
+                      </h4>
+                      <span
+                        className={`text-[11px] font-mono font-semibold tabular-nums ${
+                          Math.abs(electricTotal - 100) < 0.5
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {electricTotal}%{" "}
+                        {Math.abs(electricTotal - 100) < 0.5 ? "✓" : "≠ 100%"}
+                      </span>
+                    </div>
+                    {unitProcesses.map((p) => (
+                      <div key={`elec-${p.id}`} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[12px] text-gray-700 truncate max-w-[60%]">
+                            {p.name}
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={electricOverrides[p.id] ?? 0}
+                              onChange={(e) =>
+                                handleElectricSlider(p.id, Number(e.target.value))
+                              }
+                              className="w-28 h-1.5 accent-blue-600 cursor-pointer"
+                            />
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={electricOverrides[p.id] ?? 0}
+                              onChange={(e) =>
+                                handleElectricSlider(p.id, Number(e.target.value) || 0)
+                              }
+                              className="w-14 px-1.5 py-1 text-[12px] font-semibold text-right border border-gray-200 rounded-md bg-gray-50 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                            />
+                            <span className="text-[10px] text-gray-400 w-3">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Thermal Shares */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-orange-500" />
+                        Thermal Energy Shares
+                      </h4>
+                      <span
+                        className={`text-[11px] font-mono font-semibold tabular-nums ${
+                          Math.abs(thermalTotal - 100) < 0.5
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {thermalTotal}%{" "}
+                        {Math.abs(thermalTotal - 100) < 0.5 ? "✓" : "≠ 100%"}
+                      </span>
+                    </div>
+                    {unitProcesses.map((p) => (
+                      <div key={`therm-${p.id}`} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[12px] text-gray-700 truncate max-w-[60%]">
+                            {p.name}
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={thermalOverrides[p.id] ?? 0}
+                              onChange={(e) =>
+                                handleThermalSlider(p.id, Number(e.target.value))
+                              }
+                              className="w-28 h-1.5 accent-orange-500 cursor-pointer"
+                            />
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={1}
+                              value={thermalOverrides[p.id] ?? 0}
+                              onChange={(e) =>
+                                handleThermalSlider(p.id, Number(e.target.value) || 0)
+                              }
+                              className="w-14 px-1.5 py-1 text-[12px] font-semibold text-right border border-gray-200 rounded-md bg-gray-50 tabular-nums focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                            />
+                            <span className="text-[10px] text-gray-400 w-3">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reset Button */}
+                  <div className="flex items-center justify-end pt-2 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={resetOverridesToDefaults}
+                      className="flex items-center gap-1.5 text-[12px] text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Reset to BEE Sector Defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Submit Actions */}
           <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">

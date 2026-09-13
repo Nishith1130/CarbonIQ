@@ -172,11 +172,68 @@ def calculate_macc_for_run(run: Run, db: Session) -> MACCResponse:
 
     db.commit()
 
+    # ------------------------------------------------------------------ #
+    # Deduplicate by intervention_id.                                    #
+    # An intervention that appears across multiple hotspots (e.g. rooftop#
+    # solar, LED retrofit) would otherwise show up 3-4 times. We merge   #
+    # duplicates and SUM the annual abatement / saving across hotspots   #
+    # so nothing is under-counted.                                       #
+    # ------------------------------------------------------------------ #
+    merged: dict[str, MACCItemResponse] = {}
+    processes_seen: dict[str, list[str]] = {}
+
+    for item in items:
+        key = item.intervention_id
+        proc = item.unit_process_id
+        if key not in merged:
+            merged[key] = item
+            processes_seen[key] = [proc] if proc else []
+            continue
+
+        current = merged[key]
+        # Sum abatement + savings; keep the largest single CapEx (they're the same intervention)
+        new_reduced = round(float(current.tco2e_reduced_annual) + float(item.tco2e_reduced_annual), 4)
+        new_saving  = round(float(current.annual_saving_inr) + float(item.annual_saving_inr), 2)
+        new_capex   = max(float(current.cost_capex_inr), float(item.cost_capex_inr))
+        # Recompute cost/tCO2e from the merged figures
+        annualized_capex = new_capex / 10.0
+        new_cost_per_tco2e = round((annualized_capex - new_saving) / max(new_reduced, 0.001), 2)
+        new_payback = round(new_capex / max(new_saving, 1.0), 2)
+
+        # Prefer the longer rationale (usually the more detailed one)
+        rationale = current.rationale
+        if item.rationale and len(item.rationale) > len(rationale or ""):
+            rationale = item.rationale
+
+        merged[key] = current.model_copy(update={
+            "tco2e_reduced_annual": new_reduced,
+            "annual_saving_inr":    new_saving,
+            "cost_capex_inr":       round(new_capex, 2),
+            "cost_per_tco2e":       new_cost_per_tco2e,
+            "payback_years":        new_payback,
+            "rationale":            rationale,
+        })
+        if proc:
+            processes_seen[key].append(proc)
+
+    # Append the aggregated unit-process list to the rationale so the SME
+    # sees "Addresses: dyeing bath, stenter drying, etp utilities"
+    for key, item in merged.items():
+        unique_procs = sorted(set(processes_seen.get(key, [])))
+        if len(unique_procs) > 1:
+            proc_label = ", ".join(p.replace("_", " ") for p in unique_procs)
+            item.rationale = (item.rationale or "").strip()
+            if item.rationale and not item.rationale.endswith("."):
+                item.rationale += "."
+            item.rationale += f" Addresses hotspots: {proc_label}."
+
+    deduped = list(merged.values())
+
     # Sort ascending by cost_per_tco2e: most negative (highest net savings) first
-    items.sort(key=lambda x: x.cost_per_tco2e)
+    deduped.sort(key=lambda x: x.cost_per_tco2e)
 
     return MACCResponse(
         run_id=run.id,
-        total_interventions=len(items),
-        items=items,
+        total_interventions=len(deduped),
+        items=deduped,
     )

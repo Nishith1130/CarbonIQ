@@ -19,6 +19,8 @@ import {
   Layers,
   Search,
   Plus,
+  BarChart3,
+  TrendingDown,
 } from "lucide-react";
 
 const PAGE_SIZE = 4;
@@ -397,10 +399,9 @@ export default function ReportsListPage() {
                     const total = Number(r.totals?.total || 0);
                     const top = r.hotspots?.[0];
                     return (
-                      <Link
+                      <div
                         key={r.id}
-                        href={`/dashboard/${r.id}/report`}
-                        className="group block bg-white border border-gray-200 rounded-xl hover:border-blue-200 hover:shadow-sm transition-all"
+                        className="block bg-white border border-gray-200 rounded-xl hover:border-blue-200 hover:shadow-sm transition-all"
                       >
                         <div className="px-4 py-3 flex items-center gap-3">
                           {/* Icon */}
@@ -422,6 +423,12 @@ export default function ReportsListPage() {
                               >
                                 <TierIcon className="w-3 h-3" />
                                 {TIER_CONFIG[tier].short}
+                              </span>
+                              <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-bold text-gray-900 tabular-nums ml-1">
+                                {total.toFixed(2)}
+                                <span className="text-[9px] font-medium text-gray-400 uppercase tracking-wider">
+                                  tCO₂e
+                                </span>
                               </span>
                             </div>
                             <div className="mt-0.5 text-[11px] text-gray-500 flex items-center gap-3 flex-wrap">
@@ -448,22 +455,38 @@ export default function ReportsListPage() {
                             </div>
                           </div>
 
-                          {/* Totals */}
-                          <div className="hidden md:flex flex-col items-end min-w-[86px]">
-                            <div className="text-base font-bold text-gray-900 tabular-nums leading-tight">
-                              {total.toFixed(2)}
-                            </div>
-                            <div className="text-[9px] text-gray-500 uppercase tracking-wider">
-                              tCO₂e total
-                            </div>
-                          </div>
+                          {/* Actions — Breakdown · MACC · Report */}
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <Link
+                              href={`/dashboard/${r.id}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-gray-200 hover:border-blue-300 hover:bg-blue-50/60 text-[11px] font-semibold text-gray-700 hover:text-blue-700 transition-colors"
+                              title="View full emission breakdown"
+                            >
+                              <BarChart3 className="w-3 h-3" />
+                              <span className="hidden sm:inline">Breakdown</span>
+                            </Link>
 
-                          {/* Chevron */}
-                          <div className="text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0">
-                            <ChevronRight className="w-4 h-4" />
+                            <Link
+                              href={`/dashboard/${r.id}/macc`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/60 text-[11px] font-semibold text-gray-700 hover:text-emerald-700 transition-colors"
+                              title="View AI-generated intervention recommendations"
+                            >
+                              <TrendingDown className="w-3 h-3" />
+                              <span className="hidden sm:inline">MACC</span>
+                            </Link>
+
+                            <Link
+                              href={`/dashboard/${r.id}/report`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gray-900 hover:bg-black text-[11px] font-semibold text-white transition-colors"
+                              title="Open BRSR compliance report"
+                            >
+                              <FileText className="w-3 h-3" />
+                              <span>Report</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </Link>
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>
